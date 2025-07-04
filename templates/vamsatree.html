@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% include 'bootstrap.html' %}
+     <style>
+        .member { padding: 10px; border: 1px solid black; display: inline-block; margin: 5px; }
+        .spouse { color: gray; font-style: italic; }
+        .children { margin-left: 20px; }
+    </style>
+    {% include 'navbar.html' %}
+    
+    <h4>Family Tree of {{ name }}</h4>
+
+    <div class="tree">
+        {% macro render_tree(member) %}
+            <div class="member" style="background-color: {{ member.color }};">
+                {{ member['name'] }}
+                {% if member['spouse'] %}
+                    <div class="spouse">Spouse: {{ member['spouse'] }}</div>
+                {% endif %}
+                {% if member['children'] %}
+                    <div class="children">
+                        {% for child in member['children'] %}
+                            {{ render_tree(child) }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endmacro %}
+        
+        {{ render_tree(tree) }}
+    </div>
+</body>
+</html>

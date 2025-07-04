@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% include 'bootstrap.html' %}
+    {% include 'navbar.html' %}
+
+        <div class="container mt-4">
+            <div class="row">
+                <!-- Left: Table with Expenses -->
+                <div class="col-md-4">
+                    <!-- Search Form -->
+                    <form method="POST" class="form-inline mb-1">
+                        <div class="form-group mr-1">
+                            <label for="filter_event_id" class="mr-1" >Event ID:</label>
+                            <input type="text" name="filter_event_id" id="filter_event_id" class="form-control" placeholder="Enter Event ID">
+                        </div>
+                        <button type="submit" name="action" value="filter" class="btn btn-primary">Search</button>
+                    </form>
+
+                    <h4>Latest 5 Expenses</h4>
+                    <table class="table table-bordered table-sm">
+                        <thead class="thead-light">
+                            <tr><th>Event ID</th><th>Voucher Num</th><th>Amount</th>
+                                <th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for expense in expenses %}
+                            <tr><td>{{ expense.EVENT_ID }}</td><td>{{ expense.Voucher_Num }}</td><td>{{ expense.Amount }}</td>
+                                <td>
+                                    <!-- Select Button for Update -->
+                                    <button class="btn btn-warning btn-sm"
+                                            onclick="populateUpdateForm('{{ expense.EVENT_ID }}', '{{ expense.Voucher_Num }}', '{{ expense.Amount }}', '{{ expense.Amount_Details }}', '{{ expense.Expense_Type }}', '{{ expense.TRN_ID }}')">
+                                        Select
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- Update/Delete Form (Positioned Below the Table in the Same Grid) -->
+                    <div id="updateFormContainer" style="display:none;">
+                        <h4>Update or Delete Expense</h4>
+                        <form method="POST" class="p-3 border rounded bg-light" id="updateForm">
+                            <input type="hidden" name="trn_id" id="update_trn_id">  <!-- Hidden field for TRN_ID -->
+                            <input type="hidden" name="event_id" id="update_event_id">
+                            <input type="hidden" name="voucher_num" id="update_voucher_num">
+
+                            <div class="form-group">
+                                <label for="update_amount">Amount</label>
+                                <input type="text" name="amount" id="update_amount" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="update_amount_details">Amount Details</label>
+                                <input type="text" name="amount_details" id="update_amount_details" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="update_expense_type">Expense Type</label>
+                                <input type="text" name="expense_type" id="update_expense_type" class="form-control" required>
+                            </div>
+                            <button type="submit" name="action" value="update" class="btn btn-primary btn-sm mt-2">Update Expense</button>
+
+                            <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="cancelUpdate()">Cancel</button>
+
+                            <hr>
+
+                            <!-- Delete Button -->
+                            <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm mt-2">Delete Expense</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <h4>Create New Expense</h4>
+                    <form method="POST" class="p-3 border rounded bg-light">
+                        <div class = "form-group row">
+                        <div class="col-md-3">
+                            <label for="deshcode">Entity ID</label>
+                            <input type="text" name="deshcode" id="deshcode" class="form-control" value="{{session['entity_id']}}" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="event_id">Event ID</label>
+                            <input type="text" name="event_id" id="event_id" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="TranDate" class="form-label">Tran Date</label>
+                            <input type="date" name="TranDate" id="trandate" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="expense_type">Expense Type</label>
+                            <input type="text" name="expense_type" id="expense_type" class="form-control" required>
+                        </div>
+
+                        </div>
+                        <div class="form-group row">
+                        <div class="col-md-8">
+                            <label for="payee_id">Payee ID</label>
+                            <input type="text" name="payee_id" id="payee_id" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="amount">Amount</label>
+                            <input type="text" name="amount" id="amount" class="form-control" required>
+                        </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="amount_details">Amount Details</label>
+                            <input type="text" name="amount_details" id="amount_details" class="form-control" required>
+                        </div>
+                        <button type="submit" name="action" value="create" class="btn btn-success btn-sm mt-2">Create Expense</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- JavaScript for Handling Update -->
+        <script>
+            function populateUpdateForm(eventId, voucherNum, amount, amountDetails, expenseType, trnId) {
+                document.getElementById('update_event_id').value = eventId;
+                document.getElementById('update_voucher_num').value = voucherNum;
+                document.getElementById('update_amount').value = amount;
+                document.getElementById('update_amount_details').value = amountDetails;
+                document.getElementById('update_expense_type').value = expenseType;
+                document.getElementById('update_trn_id').value = trnId;  // Populate TRN_ID
+                document.getElementById('updateFormContainer').style.display = 'block';
+            }
+
+            function cancelUpdate() {
+                document.getElementById('updateFormContainer').style.display = 'none';
+            }
+        </script>
+    </body>
+</html>

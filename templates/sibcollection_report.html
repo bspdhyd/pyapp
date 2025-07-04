@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
+
+<div class="container mt-4">
+    <h4 class="mb-4">Upload daily SIB Collection report and Preview Table</h4>
+
+    <!-- Upload Form -->
+    <form method="POST" enctype="multipart/form-data" class="mb-4 border p-3 rounded bg-light">
+        <div class="form-group">
+            <label for="excel_file"><strong>Choose Excel File (.xlsx or .xls)</strong></label>
+            <input type="file" name="excel_file" class="form-control mt-1" required accept=".xlsx,.xls">
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Upload</button>
+    </form>
+
+    <!-- Success/Error Messages -->
+    {% if success %}
+        <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <!-- Table Preview -->
+    {% if table_data %}
+        <h5 class="mt-4">Preview of Uploaded Excel Data</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-sm">
+                <thead class="table-dark">
+                    <tr>
+                        {% for header in table_data.headers %}
+                            <th>{{ header }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_data.rows %}
+                        <tr>
+                            {% for cell in row %}
+                                <td>{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>

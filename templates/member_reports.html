@@ -1,0 +1,90 @@
+<!-- member_reports.html -->
+<!DOCTYPE html>
+<html lang="en">
+    {% include 'bootstrap.html' %}
+    {% include 'navbar.html' %}
+
+  <div class="container mt-4">
+    <h4>Member Reports</h4>
+
+    <form method="get" action="{{ url_for('member_reports.member_reports_home') }}" class="mb-3">
+
+      <div class="form-group">
+        <input type="text" name="member_id" placeholder="Enter Member ID" class="form-control mb-3" value="{{ member_id }}" required />
+      </div>
+
+      <div class="form-group">
+        <label><strong>Select Report Category:</strong></label><br>
+
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="category" id="contribution" value="contribution" required 
+            {% if category == 'contribution' %}checked{% endif %} />
+          <label class="form-check-label" for="contribution">Contributions</label>
+        </div>
+
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="category" id="expenses" value="expenses"
+            {% if category == 'expenses' %}checked{% endif %} />
+          <label class="form-check-label" for="expenses">Expenses</label>
+        </div>
+
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="category" id="attendance" value="attendance"
+            {% if category == 'attendance' %}checked{% endif %} />
+          <label class="form-check-label" for="attendance">Attendance</label>
+        </div>
+
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="category" id="recognition" value="recognition"
+            {% if category == 'recognition' %}checked{% endif %} />
+          <label class="form-check-label" for="recognition">Recognition</label>
+        </div>
+
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="category" id="references" value="references"
+            {% if category == 'references' %}checked{% endif %} />
+          <label class="form-check-label" for="references">References</label>
+        </div>
+      </div>
+
+      <button type="submit" name="action" value="report" class="btn btn-primary">View Report</button>
+      <button type="submit" name="action" value="download" class="btn btn-success">Download</button>
+    </form>
+<!--
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+-->
+    {% if results %}
+      <table class="table table-bordered table-sm">
+        <thead><tr>
+            {% for key in results[0].keys() %}
+              <th>{{ key }}</th>
+            {% endfor %}
+                {% if category == 'contribution' %}
+                <th> Receipt </th>
+                {% endif %}
+          </tr></thead>
+        <tbody>
+          {% for row in results %}
+            <tr>
+              {% for value in row.values() %}
+                <td>{{ value }}</td>
+              {% endfor %}
+                  {% if category == 'contribution' %}
+                  <td><a href="{{ url_for('cflskrtn.view_receipt', receipt_id=row.Transaction_Code) }}" 
+                                        target="_blank" class="btn btn-sm btn-info"> Receipt </a> </td>
+                  {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      {% if member_id and category %}
+        <p>No records found for Member ID <strong>{{ member_id }}</strong> in <em>{{ category }}</em> report.</p>
+      {% endif %}
+    {% endif %}
+
+  </div>
+</body>
+</html>

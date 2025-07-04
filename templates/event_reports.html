@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% include 'bootstrap.html' %}
+  {% include 'navbar.html' %}
+
+  <div class="container mt-4">
+    <h2>Event Reports</h2>
+
+    <form method="get" action="{{ url_for('event_reports.event_reports_home') }}" class="mb-3">
+      <input type="text" name="event_id" placeholder="Enter Event ID" class="form-control mb-3" value="{{ event_id }}" required />
+
+      <label><strong>Select Report Category:</strong></label><br />
+      {% for val, label in [('contribution', 'Contributions'), ('expenses', 'Expenses'), ('attendance', 'Attendance'), ('recognition', 'Recognition'), ('graphs', 'Graphs')] %}
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="category" id="{{ val }}" value="{{ val }}" required {% if category == val %}checked{% endif %} />
+          <label class="form-check-label" for="{{ val }}">{{ label }}</label>
+        </div>
+      {% endfor %}
+
+      <button type="submit" class="btn btn-primary">View Report</button>
+    </form>
+
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    {% if results %}
+      <table class="table table-bordered table-sm">
+        <thead><tr>{% for key in results[0].keys() %}<th>{{ key }}</th>{% endfor %}
+                {% if category == 'contribution' %}
+                <th> Receipt </th>
+                {% endif %}</tr></thead>
+        <tbody>
+          {% for row in results %}
+            <tr>{% for val in row.values() %}<td>{{ val }}</td>{% endfor %}
+            {% if category == 'contribution' %}
+                  <td><a href="{{ url_for('cflskrtn.view_receipt', receipt_id=row.Transaction_Code) }}" 
+                                        target="_blank" class="btn btn-sm btn-info"> Receipt </a> </td>
+                  {% endif %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+    {% if category == 'graphs' %}
+      {% if expense_img and contribution_img and registration_img %}
+        <div class="row mt-4">
+          <div class="col-md-4 text-center">
+            <h4>Expenses</h4>
+            <img src="data:image/png;base64,{{ expense_img }}" class="img-fluid border p-2 bg-white" alt="Expense Graph" />
+            <p><strong>Total Expense Amount:</strong> {{ total_expense_amount }}</p>
+          </div>
+          <div class="col-md-4 text-center">
+            <h4>Contributions</h4>
+            <img src="data:image/png;base64,{{ contribution_img }}" class="img-fluid border p-2 bg-white" alt="Contribution Graph" />
+            <p><strong>Total Contribution Amount:</strong> {{ total_contribution_amount }}</p>
+          </div>
+          <div class="col-md-4 text-center">
+            <h4>Registrations</h4>
+            <img src="data:image/png;base64,{{ registration_img }}" class="img-fluid border p-2 bg-white" alt="Registration Graph" />
+            <p><strong>Total Registration Count:</strong> {{ total_registration_count }}</p>
+          </div>
+        </div>
+      {% else %}
+        <p>No graph data available for Event ID <strong>{{ event_id }}</strong>.</p>
+      {% endif %}
+    {% elif event_id and category and not results %}
+      <p>No records found for Event ID <strong>{{ event_id }}</strong> in <em>{{ category }}</em> report.</p>
+    {% endif %}
+  </div>
+</html>

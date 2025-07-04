@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% include 'bootstrap.html' %}
+    {% include 'navbar.html' %}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Left: Existing Requests Table -->
+        <div class="col-md-8">
+            <h4>Existing Requests</h4>
+
+            <!-- Search Form -->
+            <!-- Add to Search Form -->
+<form method="get" action="{{ url_for('requests.view_requests') }}" class="mb-3">
+    <div class="form-group row">
+    <div class="form-group bg-light mr-2">
+        <label><strong>Search by Category:</strong></label><br>
+        {% for cat in ['Defect', 'Tech Request', 'User Request'] %}
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="search_category" id="cat_{{ cat }}" value="{{ cat }}" {% if request.args.get('search_category') == cat %}checked{% endif %}>
+                <label class="form-check-label" for="cat_{{ cat }}">{{ cat }}</label>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="form-group bg-light">
+        <label><strong>Search by Status:</strong></label><br>
+        {% for stat in ['Open', 'In Progress', 'Closed', 'Cancelled'] %}
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="search_status" id="stat_{{ stat }}" value="{{ stat }}" {% if request.args.get('search_status') == stat %}checked{% endif %}>
+                <label class="form-check-label" for="stat_{{ stat }}">{{ stat }}</label>
+            </div>
+        {% endfor %}
+    </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="form-row mr-5">
+                <input type="text" name="search_member_id" class="form-control" placeholder="Search by Member ID" value="{{ request.args.get('search_member_id', '') }}">
+        </div>
+        <button type="submit" class="btn btn-primary mr-3">Search</button>
+        <a href="{{ url_for('requests.view_requests') }}" class="btn btn-secondary">Reset</a>
+    </div>
+</form>
+
+
+            {% if requests %}
+            <table class="table table-bordered table-striped table-sm">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Request Num</th>
+                        <th>Member</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Resolution</th>
+                        <th>Resolver ID</th>
+                        <th>Select</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in requests %}
+                    <tr>
+                        <td>{{ row['Request_Num'] }}</td>
+                        <td>{{ row['Req_MemberID'] }}</td>
+                        <td>{{ row['Req_Category'] }}</td>
+                        <td>{{ row['Description'] or '' }}</td>
+                        <td>{{ row['Req_Status'] }}</td>
+                        <td>{{ row['Req_Resolution'] or '' }}</td>
+                        <td>{{ row['Req_ResolverID'] or '' }}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-primary"
+                                    onclick="populateUpdate('{{ row['Request_Num'] }}',
+                                                            '{{ row['Req_Status'] }}',
+                                                            `{{ row['Req_Resolution'] or '' }}`,
+                                                            '{{ row['Req_ResolverID'] or '' }}')">
+                                Select
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No requests found.</p>
+            {% endif %}
+        </div>
+
+        <!-- Right: Create and Update Forms -->
+        <div class="col-md-4">
+            <h4>Create Request</h4>
+            <form method="POST" action="{{ url_for('requests.view_requests') }}" class="p-3 border rounded bg-light">
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" class="form-control" required>
+                        <option value="">Select Category</option>
+                        <option>Tech Request</option>
+                        <option>User Request</option>
+                        <option>Defect</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control" rows="3"></textarea>
+                </div>
+                <input type="hidden" name="status" value="Open">
+                <button type="submit" class="btn btn-success btn-sm mt-2">Create</button>
+            </form>
+
+            <!-- Update Form -->
+            <div id="updateFormContainer" class="mt-3 p-3 border rounded bg-light" style="display: none;">
+                <h5>Update Request</h5>
+                <form method="POST" action="{{ url_for('requests.update_request') }}">
+                    <input type="hidden" name="request_num" id="upd_request_num">
+
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select name="status" id="upd_status" class="form-control" required>
+                            <option>Open</option>
+                            <option>In Progress</option>
+                            <option>Closed</option>
+                            <option>Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Resolution</label>
+                        <input type="text" name="resolution" id="upd_resolution" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Resolver ID</label>
+                        <input type="number" name="resolver_id" id="upd_resolver_id" class="form-control">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm mt-2">Update</button>
+                    <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="cancelUpdate()">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function populateUpdate(num, status, resolution, resolverId) {
+        document.getElementById('upd_request_num').value = num;
+        document.getElementById('upd_status').value = status;
+        document.getElementById('upd_resolution').value = resolution;
+        document.getElementById('upd_resolver_id').value = resolverId;
+        document.getElementById('updateFormContainer').style.display = 'block';
+        document.getElementById('updateFormContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelUpdate() {
+        document.getElementById('updateFormContainer').style.display = 'none';
+    }
+</script>
+</body>
+</html>

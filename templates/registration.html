@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% include 'bootstrap.html' %}
+    {% include 'navbar.html' %}
+
+        <div class="container mt-4">
+            <div class="row">
+                <!-- Left: Table with Registrations -->
+                <div class="col-md-7">
+                    <h4>Latest 10 Event Registrations</h4>
+
+                    <!-- Search Form -->
+                    <form method="POST" class="form-inline mb-3">
+                        <div class="form-group mr-2">
+                            <label for="filter_event_id" class="mr-2">Search by Event ID:</label>
+                            <input type="text" name="filter_event_id" id="filter_event_id" class="form-control" placeholder="Enter Event ID">
+                        </div>
+                        <button type="submit" name="action" value="filter" class="btn btn-primary btn-sm">Search</button>
+                    </form>
+
+                    <table class="table table-bordered table-sm">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Event</th><th>Member</th>
+                                <th>Reg</th><th>Role</th>
+                                <th>Updated By</th><th>UpdateTime</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reg in registrations %}
+                            <tr>
+                                <td>{{ reg.EVENT_ID }}</td><td>{{ reg.MEMBER_ID }}</td>
+                                <td>{{ reg.Registered }}</td><td>{{ reg.PrimaryRole }}</td>
+                                <td>{{ reg.UpdatedBy}}</td><td>{{ reg.UpdatedDate}}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm"
+                                            onclick="populateUpdateForm('{{ reg.EVENT_ID }}', '{{ reg.MEMBER_ID }}', '{{ reg.Registered }}', '{{ reg.PrimaryRole }}')">
+                                        Update
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right: Create and Update Form -->
+                <div class="col-md-5">
+                    <form method="POST" class="p-3 border rounded bg-light">
+                        <h4>Create New Registration</h4>
+                        <div class = "form-row row">
+                            <div class="form-group col-md-4">
+                                <label for="deshcode">EntityID</label>
+                                <input type="text" id="deshcode" name="deshcode" class="form-control" value="{{session['entity_id']}}" readonly>
+                            </div>
+                            <div class="form-group col-md-8">
+                                <label for="event_id">Event ID</label>
+                                <select name="event_id" id="event_id" class="form-control" required>
+                                    {% for event in events %}
+                                        <option value="{{ event.EVENT_ID }}" {% if event.EVENT_ID == event_id %}selected{% endif %}>{{ event.EVENT_ID }}-{{ event.Event_Description }}</option>
+                                     {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="member_id">Member ID(s)</label>
+                            <input type="text" name="member_id" id="member_id" class="form-control" placeholder="E.g. 1001,1002 or 1001 1002" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registered">Registered (Y/N)</label>
+                            <input type="text" name="registered" id="registered" class="form-control" required pattern="[YN]" title="Only 'Y' or 'N' is allowed">
+                        </div>
+                        <button type="submit" name="action" value="create" class="btn btn-success btn-sm mt-2">Create Registration</button>
+                    </form>
+
+                    <hr>
+
+                    <!-- Update Form -->
+                    <form method="POST" class="p-3 border rounded bg-light" id="updateForm" style="display:none;">
+                        <h4>Update Registration</h4>
+
+                        <div class="form-row row">
+                            <div class="form-group">
+                                <label for="update_event_id">Event ID</label>
+                                <input type="text" name="event_id" id="update_event_id" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="update_member_id">Member ID</label>
+                                <input type="text" name="member_id" id="update_member_id" class="form-control" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row row">
+                            <div class="form-group col-md-4">
+                                <label for="update_registered">Registered (Y/N)</label>
+                                <input type="text" name="registered" id="update_registered" class="form-control" required pattern="[YN]" title="Only 'Y' or 'N' is allowed">
+                            </div>
+                            <div class="form-group col-md-8">
+                                <label for="primary_role">Primary Role</label>
+                                <select name="primary_role" id="update_primary_role" class="form-control" required>
+                                    {% for roles in eventroles %}
+                                        <option value="{{ roles.Sub_Category_Desc }}" {% if roles.Sub_Category_Desc == PRole %}selected{% endif %}>{{ roles.Sub_Category_Desc }}</option>
+                                     {% endfor %}
+                                </select>
+                            </div>
+                            
+                        </div>
+                        <button type="submit" name="action" value="update" class="btn btn-primary btn-sm mt-2">Update Registration</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+       <!-- JavaScript for Handling Update -->
+        <script>
+            function populateUpdateForm(eventId, memberId, registered, PRole) {
+                document.getElementById('update_event_id').value = eventId;
+                document.getElementById('update_member_id').value = memberId;
+                document.getElementById('update_registered').value = registered;
+                document.getElementById('update_primary_role').value = PRole;
+                document.getElementById('updateForm').style.display = 'block';
+            }
+        </script>
+    </body>
+</html>

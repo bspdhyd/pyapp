@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% include 'bootstrap.html' %}
+    {% include 'navbar.html' %}
+
+    <div class="container mt-4">
+        <h4>Data Issues by Referrer ID</h4>
+
+        <form method="POST" class="border rounded bg-light">
+            <fieldset>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Search" value="YrBirth" checked>
+                    <label class="form-check-label">Year of Birth</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Search" value="Surname">
+                    <label class="form-check-label">Surname Issue</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Search" value="AddrIssue">
+                    <label class="form-check-label">Address Issue</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Search" value="ParentData">
+                    <label class="form-check-label">Parent Data</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="Search" value="DupIssue">
+                    <label class="form-check-label">Duplicate Issues</label>
+                </div>
+
+                <div class="form-group mt-3">
+                    <label>Referrer ID:</label>
+                    {% if session["MEMBER_TYPE"] == "ADMIN" %}
+                        <input type="text" class="form-control" name="Member_id" required>
+                    {% else %}
+                        <input type="text" class="form-control" name="Member_id" value="{{ session['id'] }}" >
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">Check</button>
+            </fieldset>
+        </form>
+
+        {% if name %}
+            <div class="mt-4">
+                <!--<h5>Issue: {{ error_type }} — Referred by: <strong>{{ name }}</strong></h5>-->
+
+                {% if data %}
+                    <div class="table-responsive mt-3">
+                        <table class="table table-bordered table-striped">
+                            <thead class="thead-dark">
+                                <tr>
+                                    {% for key in data[0].keys() %}
+                                        <th>{{ key }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in data %}
+                                    <tr>
+                                        {% for value in row.values() %}
+                                            <td>{{ value }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-danger mt-3">No data found for this issue type.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

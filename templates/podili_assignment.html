@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
+
+    <div class="container mt-4">
+        <h2 class="mb-4">Podili assignment Management</h2>
+
+        <!-- Search Form -->
+        <form method="get" action="{{ url_for('podili_assignment.show_podili_assignment') }}">
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label for="alias" class="form-label">Name / Member ID:</label>
+                    <input type="text" name="alias" id="alias" class="form-control"
+                           value="{{ request.args.get('alias', '') }}" placeholder="Search by name or ID" />
+                </div>
+                <div class="col-md-3">
+                    <label for="year_of_birth" class="form-label">Year of Birth:</label>
+                    <input type="number" name="year_of_birth" id="year_of_birth" class="form-control"
+                           value="{{ request.args.get('year_of_birth', '') }}" min="1900" max="2100" />
+                </div>
+                
+                <div class="col-md-5 mt-3">
+                  <label class="form-label">Assigned Alias Status:</label><br>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="assigned_status" id="assigned_all" value="all"
+                      {% if request.args.get('assigned_status', 'all') == 'all' %}checked{% endif %}>
+                    <label class="form-check-label" for="assigned_all">All</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="assigned_status" id="assigned_pending" value="pending"
+                      {% if request.args.get('assigned_status') == 'pending' %}checked{% endif %}>
+                    <label class="form-check-label" for="assigned_pending">Pending</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="assigned_status" id="assigned_assigned" value="assigned"
+                      {% if request.args.get('assigned_status') == 'assigned' %}checked{% endif %}>
+                    <label class="form-check-label" for="assigned_assigned">Assigned</label>
+                  </div>
+                </div>
+            </div>
+            
+            <button type="submit" name="action" value="report" class="btn btn-primary btn">Search</button>
+            <button type="submit" name="action" value="download" class="btn btn-success">Download</button>
+            <a href="{{ url_for('podili_assignment.show_podili_assignment') }}" class="btn btn-secondary btn">Reset</a>
+
+
+        </form>
+
+        <!-- Members Table -->
+        <div class="table-responsive mt-4">
+            <table class="table table-bordered table-striped align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Alias</th><th>Mother ID</th><th>Father ID</th>
+                        <th>Assigned To (ID)</th><th>Assigned Alias</th><th>Notes</th><th>Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for member in members %}
+                <tr>
+                    <form method="post" action="{{ url_for('podili_assignment.update') }}">
+                        <td>{{ member.Alias ~ ' - (' ~ member.Year_Of_Birth ~')'}}</td>
+                        <td>{{ member.Mother_ID }}</td><td>{{ member.Father_ID }}</td>
+
+                        <!-- Assigned Member ID input -->
+                        <td>
+                            <input type="text" name="assigned_memid" id="assigned-memid" class="form-control form-control-sm" 
+                                   value="{{ member.Assigned_MemID or '' }}" placeholder="Enter Member ID" >
+                        </td>
+
+                        <!-- Resolved alias -->
+                        <td>
+                            <input type="text" name="alias" id="alias" class="form-control form-control-sm" 
+                                   value="{{ member.Assigned_Name or '' }}" readonly placeholder="Name will appear" >
+</td>
+
+                        <!-- Notes -->
+                        <td>
+                            <textarea name="notes" rows="1" class="form-control">{{ member.Notes or '' }}</textarea>
+                        </td>
+
+                        <!-- Save button -->
+                        <td>
+                            <input type="hidden" name="member_id" value="{{ member.MEMBER_ID }}">
+                            <button type="submit" class="btn btn-success btn-sm">Save</button>
+                        </td>
+                    </form>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center fst-italic">No records found.</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% include 'bootstrap.html' %}
+    {% include 'navbar.html' %}
+
+<div class="container mt-4">
+    <h4>Duplicate Member Identifier</h4>
+
+    <form method="POST" class="p-3 border rounded bg-light">
+
+        <div class="form-group">
+            <label for="Criteria"><strong>Search Value</strong> (ID, Name, Surname, Email, Phone):</label>
+            <input type="text" class="form-control" name="Criteria" value="{{ criteria }}" required>
+        </div>
+
+        <button type="submit" name="Check" class="btn btn-primary">Check</button>
+        <button type="submit" name="Update" class="btn btn-success">Update</button>
+
+        {% if data %}
+            <div class="table-responsive mt-4">
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr><th>Alias</th><th>Surname</th><th>Phone Num</th><th>YOB</th><th>Email</th><th>Duplicate</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data %}
+                            <tr><td>{{ row['Alias'] }}</td><td>{{ row['Surname'] }}</td><td>{{ row['Phone_Num'] }}</td><td>{{ row['Year_Of_Birth'] }}</td><td>{{ row['Email_ID'] }}</td>
+                                <td>
+                                    {% if row['DupIndicator'] > 0 %}
+                                        <input type="checkbox" checked disabled>
+                                    {% else %}
+                                        {% if session['user']['MEMBER_TYPE'] == 'ADMIN' %}
+                                        <input type="checkbox" name="DupInd" value="{{ row['MEMBER_ID'] }}-{{ row['Surname'] }}-{{ row['DupIndicator'] }}">
+                                        {%else%}
+                                        <input type="checkbox" name="DupInd" disabled>
+                                        {% endif %}
+                                    {% endif %}
+                                </td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% elif criteria %}
+            <p class="text-danger mt-3">No matching records found.</p>
+        {% endif %}
+
+    </form>
+</div>
+</body>
+</html>

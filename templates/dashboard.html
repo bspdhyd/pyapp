@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    
+{% include 'bootstrap.html' %}
+
+{% include 'navbar.html' %}
+
+
+
+<div class="container mt-4">
+    <h3>Your Member Information</h3>
+    <table class="table table-bordered">
+        <tr><th>Member ID</th><td>{{ user.MEMBER_ID }}</td></tr>
+        <tr><th>Email</th><td>{{ user.Email_ID }}</td></tr>
+        <tr><th>Phone</th><td>{{ user.Phone_Num }}</td></tr>
+        <tr><th>referrerid</th><td>{{ user.Referrer_ID }}</td></tr>
+        <tr><th>ipaddress</th><td>{{ ip_address }}</td></tr>
+        <tr><th>testfield</th><td>{{ otp }}</td></tr>   
+        <tr><th>Encrypted Value</th><td>{{ encryptvalue }}</td></tr>   
+        <tr><th>Decrypted Value</th><td>{{ decryptvalue }}</td></tr>  
+        <tr><th>Bank Acct Num</th><td>{{ acctnum }}</td></tr>   
+
+    </table>
+</div>
+
+</body>
+</html>

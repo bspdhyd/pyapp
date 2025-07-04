@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
+
+<div class="container mt-4">
+    <h4>Multiple Member Data Report</h4>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="member_ids" class="form-label">Enter Member IDs (comma-separated)</label>
+            <input type="text" class="form-control" id="member_ids" name="member_ids" placeholder="e.g. 1110, 1112, 1113">
+        </div>
+        <button type="submit" class="btn btn-primary">Fetch Data</button>
+    </form>
+
+    {% for mid, data in merged_data.items() %}
+        <h6 class="mt-4 text-primary">Recognition & Contribution - {{data.member['Alias']}} - {{ data.member['Email_ID'] }} - {{ data.member['Phone_Num'] }} - {{ data.member['Year_Of_Birth'] }}</h6>
+            
+        <div class="form-group row">
+            <div class="col-md-4">
+                <table class="table table-bordered table-striped table-sm">
+                <thead class="table-info">
+                    <tr><th>EVENT_ID</th><th>Notes</th></tr>
+                </thead>
+                <tbody>
+                    {% for row in data.recognition %}
+                    <tr><td>{{ row['EVENT_ID'] }}</td><td>{{ row['Notes'] }}</td></tr>
+                    {% endfor %}
+                </tbody>
+                </table>
+            </div>
+            <div class="col-md-8">
+                <table class="table table-bordered table-striped table-sm">
+                    <thead class="table-success">
+                        <tr><th>EVENT_ID</th><th>Amount</th><th>Reference_Details</th>
+                            <th>Receipt PDF</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data.contribution %}
+                        <tr><td>{{ row['EVENT_ID'] }}</td><td>{{ row['Amount'] }}</td><td>{{ row['Reference_Details'] }}</td>
+                            <td><a href="{{ row['Receipt_PDF_URL'] }}" target="_blank">View PDF</a></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endfor %}
+
+</div>
+</html>

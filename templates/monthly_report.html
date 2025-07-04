@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
+
+<div class="container mt-4">
+    <h5>Monthly Contribution and Expense SummaryReport</h5>
+
+    <form method="POST" class="row g-3">
+        <div class="col-md-4">
+            <label for="start_month" class="form-label">Start Month</label>
+            <input type="month" name="start_month" id="start_month" class="form-control" value="{{ start_month }}">
+        </div>
+        <div class="col-md-4">
+            <label for="end_month" class="form-label">End Month</label>
+            <input type="month" name="end_month" id="end_month" class="form-control" value="{{ end_month }}">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">View Graph</button>
+        </div>
+    </form>
+
+    {% if chart_img %}
+        <div class="mt-4">
+            <img src="{{ chart_img }}" class="img-fluid border" alt="Chart">
+        </div>
+    {% endif %}
+
+    {% if merged_array %}
+      <table class="table table-bordered table-sm">
+        <thead><tr>
+            {% for key in merged_array[0].keys() %}
+              <th>{{ key }}</th>
+            {% endfor %}
+          </tr></thead>
+        <tbody>
+          {% for row in merged_array %}
+            <tr>
+              {% for value in row.values() %}
+                <td>{{ value }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+</div>

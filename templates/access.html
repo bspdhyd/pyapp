@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+    {% include 'bootstrap.html' %}
+    {% include 'navbar.html' %}
+
+    <div class="container mt-4">
+        <h2>Member Access</h2>
+
+        <!-- Search Form -->
+        <form method="POST" class="form-inline mb-3">
+            <input type="text" name="member_id" class="form-control mr-2" placeholder="Enter Member ID" value="{{ member_id }}">
+            <input type="hidden" name="action" value="search">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        <!-- Show Alias -->
+        {% if alias %}
+        <div class="form-group">
+            <label>Alias:</label>
+            <input type="text" class="form-control" value="{{ alias }}" readonly>
+        </div>
+        {% endif %}
+
+        <!-- Show Access and Update Form -->
+        {% if results %}
+            <form method="POST">
+                <input type="hidden" name="member_id" value="{{ member_id }}">
+                <input type="hidden" name="action" value="update">
+                <table class="table table-bordered mt-4">
+                    <tbody>
+                        <tr><th>Member Create/Update</th><td>{{ results['Member_CU'] }}</td>
+                            <td><select name="membercu_access" class="form-control">
+                                    <option value="Y" {% if results['Member_CU'] == 'Y' %}selected{% endif %}>Y</option>
+                                    <option value="N" {% if results['Member_CU'] == 'N' %}selected{% endif %}>N</option>
+                                </select></td>
+                            <th>Event Access</th><td>{{ results['Event'] }}</td>
+                            <td><select name="event_access" class="form-control">
+                                    <option value="Y" {% if results['Event'] == 'Y' %}selected{% endif %}>Y</option>
+                                    <option value="N" {% if results['Event'] == 'N' %}selected{% endif %}>N</option>
+                                </select>
+                            </td></tr>
+                        <tr><td colspan="3" class="text-center">
+                                <button type="submit" class="btn btn-success">Update</button>
+                            </td></tr>
+                    </tbody>
+                </table>
+            </form>
+        {% endif %}
+    </div>
+</body>
+</html>

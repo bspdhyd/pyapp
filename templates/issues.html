@@ -1,0 +1,59 @@
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
+
+<div class="container mt-4 bg-light">
+    <h2>Member Data Issues</h2>
+
+    <form method="post" class="mb-3 d-flex align-items-center flex-wrap gap-3">
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="issue_type" value="status" {% if selected_filter == 'status' %}checked{% endif %}>
+            <label class="form-check-label">Status</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="issue_type" value="referrer" {% if selected_filter == 'referrer' %}checked{% endif %}>
+            <label class="form-check-label">Referrer_ID</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="issue_type" value="birthyear" {% if selected_filter == 'birthyear' %}checked{% endif %}>
+            <label class="form-check-label">Year of Birth</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="issue_type" value="surname" {% if selected_filter == 'surname' %}checked{% endif %}>
+            <label class="form-check-label">Surname length</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="issue_type" value="nocontrib" {% if selected_filter == 'nocontrib' %}checked{% endif %}>
+            <label class="form-check-label">No Contributions</label>
+        </div>
+
+        <div>
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a href="/issues" class="btn btn-secondary ms-2">Reset</a>
+        </div>
+    </form>
+
+    {% if issues %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        {% for col in issues[0].keys() %}
+                            <th>{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in issues %}
+                        <tr>
+                            {% for val in row.values() %}
+                                <td>{{ val }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No matching members found.</p>
+    {% endif %}
+</div>

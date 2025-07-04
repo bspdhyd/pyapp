@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% include 'bootstrap.html' %}
+    {% include 'navbar.html' %}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Left side: Admissions List -->
+        <div class="col-md-8">
+            <h4>Admissions</h4>
+
+            <!-- Search form -->
+            <form method="GET" action="{{ url_for('podili_admission.podili_admission_list') }}" class="form-inline p-3 mb-2 border bg-light ">
+                <div class="form-group mr-5">
+                    <label for="aliasInput">ID/NAME:</label>
+                    <input type="text" id="aliasInput" name="alias" class="form-control ml-2" placeholder="Search Alias" value="{{ request.args.get('alias', '') }}">
+                </div>
+            
+                <div class="form-group mr-3">
+                    <label for="yobInput">YOB:</label>
+                    <input type="number" id="yobInput" name="year_of_birth" class="form-control ml-2" placeholder="Year of Birth" min="1900" max="2100" value="{{ request.args.get('year_of_birth', '') }}">
+                </div>
+            
+                <div class="form-group mr-3">
+                    <label class="mr-2">Status:</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="status" id="status_all" value="" {% if request.args.get('status', '') == '' %}checked{% endif %}>
+                        <label class="form-check-label" for="status_all">All</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="status" id="status_pending" value="Pending" {% if request.args.get('status') == 'Pending' %}checked{% endif %}>
+                        <label class="form-check-label" for="status_pending">Pending</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="status" id="status_declined" value="Declined" {% if request.args.get('status') == 'Declined' %}checked{% endif %}>
+                        <label class="form-check-label" for="status_declined">Declined</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="status" id="status_onboarded" value="Onboarded" {% if request.args.get('status') == 'Onboarded' %}checked{% endif %}>
+                        <label class="form-check-label" for="status_onboarded">Onboarded</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-sm mr-2 mt-2">Search</button>
+                <a href="{{ url_for('podili_assignment.show_podili_assignment') }}" class="btn btn-secondary btn-sm mt-2">Reset</a>
+            </form>
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr><th>Alias</th><th>YOB</th>
+                        <th>Status</th><th>Notes</th>
+                        <th>Adm Num</th><th>Adm Date</th><th>Select</th></tr>
+                </thead>
+                <tbody>
+                    {% for admission in admissions %}
+                    <tr><td>{{ admission.Alias }}</td><td>{{ admission.Year_Of_Birth }}</td>
+                        <td>{{ admission.Onboard_Status }}</td><td>{{ admission.Assignee_Notes }}</td>
+                        <td>{{ admission.Admission_Num }}</td><td>{{ admission.Admission_Dt if admission.Admission_Dt else '' }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('podili_admission.podili_admission_list') }}">
+                                <input type="hidden" name="selected_memid" value="{{ admission.Student_MemID }}">
+                                <button type="submit" class="btn btn-primary btn-sm">Select</button>
+                            </form>
+                        </td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Right side: Update form -->
+        <div class="col-md-4">
+            {% if selected_admission %}
+            <h4>Update Admission (MemID: {{ selected_admission.Student_MemID }})</h4>
+            <form method="POST" action="{{ url_for('podili_admission.podili_admission_list') }}">
+                <input type="hidden" name="student_memid" value="{{ selected_admission.Student_MemID }}">
+                
+                <!-- <div class="form-group">
+                    <label>Alias</label>
+                    <input type="text" class="form-control" value="{{ selected_admission.Alias }}" readonly>
+                </div>-->
+                
+                <div class="form-group">
+                    <label>Phone_num</label>
+                    <input type="text" class="form-control" value="{{ selected_admission.Phone_Num }}" readonly>
+                </div>
+                
+                <div class = "form-row row">
+                    <div class="form-group col-md-6">
+                        <label>Father ID</label>
+                        <input type="text" name="father_id" class="form-control" value="{{ selected_admission.Father_ID }}" readonly>
+                    </div>
+    
+                    <div class="form-group col-md-6">
+                        <label>Mother ID</label>
+                        <input type="text" name="mother_id" class="form-control" value="{{ selected_admission.Mother_ID }}" readonly>
+                    </div>
+                </div>
+                
+                
+                <div class = "form-row row">
+                    <div class="form-group col-md-6">
+                        <label>Admission Date</label>
+                        <input type="date" name="admission_dt" class="form-control" value="{{ selected_admission.Admission_Dt }}">
+                    </div>
+    
+                    <div class="form-group col-md-6">
+                        <label>Admission Number</label>
+                        <input type="text" name="admission_num" class="form-control" value="{{ selected_admission.Admission_Num }}">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Assignee Notes</label>
+                    <textarea name="assignee_notes" class="form-control">{{ selected_admission.Assignee_Notes }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Onboard Status</label>
+                    <select name="onboard_status" class="form-control" required>
+                        <option value="Pending" {% if selected_admission.Onboard_Status == 'Pending' %}selected{% endif %}>Pending</option>
+                        <option value="Declined" {% if selected_admission.Onboard_Status == 'Declined' %}selected{% endif %}>Declined</option>
+                        <option value="Onboarded" {% if selected_admission.Onboard_Status == 'Onboarded' %}selected{% endif %}>Onboarded</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-success">Update</button>
+                <a href="{{ url_for('podili_admission.podili_admission_list') }}" class="btn btn-secondary ml-2">Cancel</a>
+            </form>
+            {% else %}
+            <p>Select a row on the left to update admission details.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</body>
+</html>

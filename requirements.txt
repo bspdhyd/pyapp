@@ -1,0 +1,13 @@
+Flask
+flask
+mysql-connector-python
+cryptography
+crypto
+PyCryptodome
+Pandas
+NumPy
+fastapi
+openpyxl
+matplotlib
+qrcode
+pillow

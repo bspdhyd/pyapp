@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
+
+<div class="container mt-4 bg-light">
+    <h4>Master Data</h4>
+
+    <form method="POST" action="{{ url_for('master_data.master_data') }}">
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="master_type" value="vaidika" id="vaidikaRadio"
+                {% if master_type == 'vaidika' %}checked{% endif %}>
+            <label class="form-check-label" for="vaidikaRadio">Vaidika Details</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="master_type" value="pravara" id="pravaraRadio"
+                {% if master_type == 'pravara' %}checked{% endif %}>
+            <label class="form-check-label" for="pravaraRadio">Pravara Gotra</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="master_type" value="pending_expenses" id="pendingExpensesRadio"
+                {% if master_type == 'pending_expenses' %}checked{% endif %}>
+            <label class="form-check-label" for="pendingExpensesRadio">Pending Expenses</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="master_type" value="transaction_code_master" id="transactionCodeMasterRadio"
+                {% if master_type == 'transaction_code_master' %}checked{% endif %}>
+            <label class="form-check-label" for="transactionCodeMasterRadio">Transaction Code Master</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+    </form>
+
+    <!-- Vaidika Table -->
+    {% if vaidika_details %}
+    <div class="mt-4">
+        <h5>Vaidika Details (Active Only)</h5>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr><th>Name</th><th>Pandit Level</th><th>Email ID</th><th>Phone Num</th><th>City</th></tr>
+            </thead>
+            <tbody>
+                {% for row in vaidika_details %}
+                <tr><td>{{ row['Alias'] }}</td><td>{{ row['Veda_Pandi'] }}</td><td>{{ row['Email_ID'] }}</td>
+                <td>{{ row['Phone_Num'] }}</td><td>{{ row['City'] }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Pravara Gotra Table -->
+    {% if pravara_details %}
+    <div class="mt-4">
+        <h5>Pravara Gotra Details</h5>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr><th>PG_ID</th><th>Gotra</th><th>Risheya</th><th>Pravara</th></tr>
+            </thead>
+            <tbody>
+                {% for row in pravara_details %}
+                <tr><td>{{ row['PG_ID'] }}</td><td>{{ row['Gotra'] }}</td>
+                    <td>{{ row['Risheya'] }}</td><td>{{ row['Pravara'] }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Pending Expenses Table -->
+    {% if pending_expenses %}
+    <div class="mt-4">
+        <h5>Pending Expenses</h5>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    {% for col_name in pending_expenses[0].keys() %}
+                    <th>{{ col_name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in pending_expenses %}
+                <tr>
+                    {% for val in row.values() %}
+                    <td>{{ val }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Transaction Code Master Table -->
+    {% if transaction_code_master %}
+    <div class="mt-4">
+        <h5>Transaction Code Master</h5>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr><th>Categroy_Type</th><th>Category_ID</th><th>Category_Desc</th>
+                    <th>Sub_Category_ID</th><th>Sub_Category_Desc</th></tr>
+            </thead>
+            <tbody>
+                {% for row in transaction_code_master %}
+                <tr><td>{{ row['Categroy_Type'] }}</td><td>{{ row['Category_ID'] }}</td><td>{{ row['Category_Desc'] }}</td>
+                    <td>{{ row['Sub_Category_ID'] }}</td><td>{{ row['Sub_Category_Desc'] }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+</html>

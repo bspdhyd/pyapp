@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    {% include 'bootstrap.html' %}
+    {% include 'navbar.html' %}
+
+    <div class="container mt-5">
+        <h2>VAN Generator</h2>
+        <form method="POST" class="mb-4">
+            <div class="form-group">
+                <label for="member_id">Member ID:</label>
+                <input type="text" class="form-control" id="member_id" name="member_id"
+                       value="{{ member_id or '' }}" placeholder="Enter your Member ID" required>
+            </div>
+            <div class="form-group mt-3">
+                <label>Contribution Type:</label><br>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="contribution_type" id="chandi" value="ChandiHomam"
+                           {% if contribution_type == 'ChandiHomam' %}checked{% endif %} required>
+                    <label class="form-check-label" for="chandi">ChandiHomam</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="contribution_type" id="biksha" value="BikshaVandanam"
+                           {% if contribution_type == 'BikshaVandanam' %}checked{% endif %}>
+                    <label class="form-check-label" for="biksha">BikshaVandanam</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="contribution_type" id="general" value="General"
+                           {% if contribution_type == 'General' %}checked{% endif %}>
+                    <label class="form-check-label" for="general">General</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Generate VAN</button>
+        </form>
+
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        {% if van_number %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Your Virtual Account Number (VAN):</h5>
+                    <p class="card-text"><strong>{{ van_number }}</strong></p>
+                    <h6>Bank Details:</h6>
+                    <ul>
+                        <li><strong>Name of Account:</strong> {{ bank_details["Name of Account"] }}</li>
+                        <li><strong>Account Number:</strong> {{ van_number }}</li>
+                        <li><strong>IFSC Code:</strong> {{ bank_details["IFSC Code"] }}</li>
+                        <li><strong>Bank:</strong> {{ bank_details["Bank"] }}</li>
+                        <li><strong>Branch:</strong> {{ bank_details["Branch"] }}</li>
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

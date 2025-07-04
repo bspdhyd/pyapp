@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    {% include 'bootstrap.html' %}
+    
+    <style>
+        #rcontainer {
+            width: 198mm;
+            height: 143mm; /* A5 landscape */
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            background-color: #fff;
+            padding: 8mm 10mm;
+            box-sizing: border-box;
+            color: #000080;
+            margin: 2mm auto 0 auto;
+            border: 1px solid #0000cc; /* Reduced border thickness */
+            overflow: hidden;
+        }
+    </style>
+
+    <div class="container mt-4">
+        {% if receipt %}
+            <div class="text-center mt-4"><button class="btn btn-success" onclick="downloadPDF()">Download PDF</button></div>    <br>
+            <!-- Only this container is included in the PDF -->
+            <div id="rcontainer">
+                <img src="{{ url_for('static', filename='receiptimage.jpg') }}" alt="Header" style="width:100%; max-width:100%; margin-bottom: 5px;">
+                <h5 style="text-align: center; font-weight: bold;">RECEIPT</h5>
+                <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 25px;">
+                    <span>Receipt No: {{ receipt.no }}</span><span>Date: {{ receipt.recpt_date }}</span></div>
+                <div style="white-space: pre-wrap; word-break: break-word; text-align: justify; font-size: 16px;"> {{ full_text }} </div>
+                <div class="text-center" style="font-size:10px; margin-top:50px;"> This is a computer-generated receipt. No signature is required. </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ✅ JS to download only receipt as one-page A5 PDF -->
+    <script>
+        function downloadPDF() {
+            const element = document.getElementById('rcontainer');
+
+            const opt = {
+                margin: 0,
+                filename: 'Receipt_{{ receipt.no }}.pdf',
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 3, scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'a5', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>

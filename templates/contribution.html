@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% include 'bootstrap.html' %}
+    {% include 'navbar.html' %}
+
+        <div class="container mt-4">
+            <div class="row">
+                <!-- Left: Table + Update -->
+                <div class="col-md-7">
+                    <form method="POST" class="form-inline mb-3">
+                        <label class="mr-2">Search by Member ID or Event ID:</label>
+                        <input type="text" name="filter_value" class="form-control mr-2" placeholder="Enter ID">
+                        <button type="submit" name="action" value="search" class="btn btn-primary btn-sm">Search</button>
+                    </form>
+
+                    <h4>Latest 10 Contributions</h4>
+                    <table class="table table-bordered table-sm">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Member ID</th><th>Event ID</th><th>Amount</th>
+                                <th>Type</th><th>Date</th><th>Approved</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in contributions %}
+                            <tr>
+                                <td>{{ c.Member_id }}</td><td>{{ c.EVENT_ID }}</td><td>{{ c.Amount }}</td>
+                                <td>{{ c.Contribution_Type }}</td><td>{{ c.Contribution_Date }}</td><td>{{ c.Approved }}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick="populateUpdate('{{ c.Member_id }}', '{{ c.EVENT_ID }}', '{{ c.Amount }}', '{{ c.Contribution_Type }}', '{{ c.Reference_Details }}', '{{ c.Approved }}', '{{ c.Receipt_PDF_URL }}')">Select</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- Update Form -->
+                    <div id="updateFormContainer" style="display:none;">
+                        <h4>Update Contribution</h4>
+                        <form method="POST" class="p-3 bg-light border rounded">
+                            <input type="hidden" name="member_id" id="upd_member_id" class="form-control">
+                            <input type="hidden" name="event_id" id="upd_event_id" class="form-control">
+
+                            <div class="form-group">
+                                <label>Amount</label>
+                                <input type="text" name="amount" id="upd_amount" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <input type="text" name="contribution_type" id="upd_type" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Reference</label>
+                                <input type="text" name="reference_details" id="upd_ref" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Receipt URL</label>
+                                <input type="text" name="receipt_pdf_url" id="upd_receipt" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Approved (Y/N)</label>
+                                <input type="text" name="approved" id="upd_approved" class="form-control" value="N">
+                            </div>
+                            <button type="submit" name="action" value="update" class="btn btn-primary btn-sm">Update</button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="cancelUpdate()">Cancel</button>
+                            <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Right: Create Form -->
+                <div class="col-md-5">
+                    <h4>Create Contribution</h4>
+                    <form method="POST" class="p-3 border rounded bg-light">
+                        <div class="form-group">
+                            <label>Member ID</label>
+                            <input type="text" name="member_id" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Event ID</label>
+                            <input type="text" name="event_id" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount</label>
+                            <input type="text" name="amount" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <input type="text" name="contribution_type" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contribution Date</label>
+                            <input type="date" name="contribution_date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <input type="text" name="reference_details" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Receipt URL</label>
+                            <input type="text" name="receipt_pdf_url" class="form-control">
+                        </div>
+                        <button type="submit" name="action" value="create" class="btn btn-success btn-sm">Create</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function populateUpdate(memberId, eventId, amount, type, ref, approved, receipt) {
+                document.getElementById('upd_member_id').value = memberId;
+                document.getElementById('upd_event_id').value = eventId;
+                document.getElementById('upd_amount').value = amount;
+                document.getElementById('upd_type').value = type;
+                document.getElementById('upd_ref').value = ref;
+                document.getElementById('upd_approved').value = approved;
+                document.getElementById('upd_receipt').value = receipt;
+                document.getElementById('updateFormContainer').style.display = 'block';
+            }
+
+            function cancelUpdate() {
+                document.getElementById('updateFormContainer').style.display = 'none';
+            }
+        </script>
+    </body>
+</html>

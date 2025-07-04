@@ -1,0 +1,66 @@
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
+
+<div class="container mt-4">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Navigation buttons -->
+  <div class="mb-3">
+      <a href="{{ url_for('images.upload_image') }}" class="btn btn-outline-primary">Upload Image</a>
+      <a href="{{ url_for('images.update_image') }}" class="btn btn-outline-warning">Update Image</a>
+      <a href="{{ url_for('images.view_image') }}" class="btn btn-outline-secondary">View Image</a>
+  </div>
+
+  {% if action == 'upload' %}
+    <h3>Upload Member Image</h3>
+    <form method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>Member ID</label>
+        <input type="text" name="member_id" class="form-control" required>
+      </div>
+      <div class="form-group mt-2">
+        <label>Select Image</label>
+        <input type="file" name="image" class="form-control" accept="image/*" required>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">Upload</button>
+    </form>
+
+  {% elif action == 'update' %}
+    <h3>Update Existing Member Image</h3>
+    <form method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>Member ID</label>
+        <input type="text" name="member_id" class="form-control" required>
+      </div>
+      <div class="form-group mt-2">
+        <label>Select New Image</label>
+        <input type="file" name="image" class="form-control" accept="image/*" required>
+      </div>
+      <button type="submit" class="btn btn-warning mt-3">Update</button>
+    </form>
+
+  {% elif action == 'view' %}
+    <h3>View Member Image</h3>
+    <form method="post">
+      <div class="form-group">
+        <label>Member ID</label>
+        <input type="text" name="member_id" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-success mt-3">View Image</button>
+    </form>
+
+    {% if image_data %}
+      <div class="mt-4">
+        <h5>Image for Member ID {{ member_id }}:</h5>
+        <img src="data:image/jpeg;base64,{{ image_data }}" class="img-thumbnail" style="max-width: 300px;">
+      </div>
+    {% endif %}
+  {% endif %}
+</div>
