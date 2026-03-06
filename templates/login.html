@@ -1,11 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
-    {% include 'bootstrap.html' %}
+{% include 'bootstrap.html' %}
+<base target="_parent">
+<style>
+    :root {
+        --saffron: #D4621A;
+        --saffron-deep: #A8440A;
+        --gold: #B8860B;
+        --cream: #FDF6EE;
+        --white: #FFFDF8;
+        --text-dark: #2C1200;
+    }
+
+    body {
+        background: transparent;
+        font-family: 'Cormorant Garamond', serif;
+        color: var(--text-dark);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
+
+    .login-container {
+        background: var(--white);
+        padding: 24px;
+        width: 100%;
+        max-width: 300px;
+    }
+
+    h2 {
+        font-family: 'Cinzel', serif;
+        font-size: 1.2rem;
+        color: var(--saffron-deep);
+        text-align: center;
+        margin-bottom: 20px;
+        letter-spacing: 0.05em;
+    }
+
+    .form-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 6px;
+    }
+
+    .form-control {
+        border: 1px solid rgba(184, 134, 11, 0.3);
+        border-radius: 4px;
+        background: var(--cream);
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: var(--saffron);
+        box-shadow: 0 0 0 3px rgba(212, 98, 26, 0.1);
+        outline: none;
+    }
+
+    .btn-premium {
+        background: var(--saffron);
+        color: white;
+        border: none;
+        width: 100%;
+        padding: 10px;
+        font-family: 'Cinzel', serif;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        border-radius: 4px;
+        margin-top: 10px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .btn-premium:hover {
+        background: var(--saffron-deep);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(168, 68, 10, 0.2);
+    }
+
+    .text-danger {
+        font-size: 0.8rem;
+        margin-top: 10px;
+        text-align: center;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.self !== window.top) {
+            document.querySelectorAll('form').forEach(function (form) {
+                form.target = '_parent';
+            });
+        }
+    });
+</script>
 
 
-<div class="container md-5">
+<div class="login-container">
     <h2>Member Login</h2>
-    <form method="POST">
+    <form method="POST" target="_parent">
         <div class="form-group">
             <label>Member ID</label>
             <input type="text" name="MEMBER_ID" class="form-control" required>
@@ -15,19 +113,20 @@
             <input type="password" name="Password" class="form-control" required>
         </div>
         <div class="form-group">
-            <label class = "label-control">Dharmic Entity:</label>
-            <select name="entity_id" class = "form-control">
+            <label>Dharmic Entity</label>
+            <select name="entity_id" class="form-control">
                 <option value="BHBNR001">BSPD - Hyderabad</option>
                 <option value="BHBLR001">BSPD - Bangalore</option>
                 <option value="BHCHN001">BSPD - Chennai</option>
-                <option value="UNIVL001">BSPD-Global Programs</option>
+                <option value="UNIVL001">BSPD-Global</option>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary">Login</button>
+        <button type="submit" class="btn-premium">Sign In</button>
         {% if message %}
-            <p class="text-danger md-3">{{ message }}</p>
+        <p class="text-danger">{{ message }}</p>
         {% endif %}
     </form>
 </div>
 </body>
+
 </html>

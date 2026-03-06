@@ -1,149 +1,178 @@
-<!-- events.html -->
 <!DOCTYPE html>
 <html lang="en">
-    {% include 'bootstrap.html' %}
-    {% include 'navbar.html' %}
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
 
-    <div class="container md-12">
-        <div class="row">
+<div class="container md-12 mt-4">
+    <div class="row">
+        <div class="col-md-9">
 
-            <div class="col-md-9">
-                <h5>Create New Member</h5>
-                <form action="{{ url_for('nwmember.create_nwmember') }}" method="POST" class="mb-4 p-3 border rounded">
-                    <div class="form-group row">
-                        <div class="col-sm-6">
-                            <label class = "label-control">Last Name(<b>Surname</b>)*</label>
-                            <input type="text" name="last_name" class = "form-control" value="" required>
-                        </div>
-                        <div class="col-sm-6">
-                            <label class = "label-control">First Name(Name)*</label>
-                            <input type="text" name="first_name" class = "form-control" value="" required>
-                        </div>
-                    </div>
+            <h5>Create New Member</h5>
 
-                    <div class="form-group row">
-                        <div class="col-sm-3">
-                            <label class = "label-control">Year of Birth (YOB)</label>
-                            <input type="number" name="YOB" value=" " min="1900" max="2050" class = "form-control">
-                        </div>
-                        <div class="col-sm-3">
-                            <label class = "label-control">Gender</label>
-                            <select name="Gender" class = "form-control">
-                                <option value="M">Male</option>  
-                                <option value="F">Female</option>
-                            </select>
-                        </div>
-                        <div class="col-sm-6">
-                            <label class = "label-control">Gotram</label>
-                            <select name="GotramID" class = "form-control">
-                                <option selected="selected" value="">Choose one</option>
-                                {% for gotra in gotras %}
-                                    <option value="{{ gotra.PG_ID }}">{{ gotra.Gotra }}-{{ gotra.Risheya }}-{{ gotra.Pravara }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
+            <!-- Member ID Fetch Form -->
+            <form action="{{ url_for('nwmember.memberlist') }}" method="POST" class="mb-3 p-3 border rounded bg-light d-flex align-items-end gap-2">
+                <div class="flex-grow-1">
+                    <label><b>Member ID</b></label>
+                    <input type="number" name="model_id" class="form-control"
+                           placeholder="Enter Member ID to fetch"
+                           value="{{ member_data.MEMBER_ID if member_data else '' }}">
+                </div>
+                <div>
+                    <button type="submit" name="fetch_btn" class="btn btn-primary">Fetch</button>
+                </div>
+                <div>
+                    <button type="button" id="clearBtn" class="btn btn-secondary">Clear</button>
+                </div>
+            </form>
 
-                    <div class="form-group row">
-                        <div class="col-sm-6">
-                            <label class = "label-control">Email*</label>
-                            <input type="text" name="email" class = "form-control" value="">
-                        </div>
-                        <div class="col-sm-6">
-                            <label class = "label-control">Phone*</label>
-                            <input type="text" name="Phone_Num" class = "form-control" value="">
-                        </div>
+            <!-- Main Create Member Form -->
+            <form id="createForm" action="{{ url_for('nwmember.create_nwmember') }}" method="POST" class="mb-4 p-3 border rounded">
+                <div class="form-group row">
+                    <div class="col-sm-6">
+                        <label>Last Name (<b>Surname</b>)*</label>
+                        <input type="text" name="last_name" class="form-control" value="{{ member_data.Surname if member_data else '' }}" required>
                     </div>
-                    <div class="form-group row">
-                        <div class="col-sm-3">
-                            <label class = "label-control">Referrer ID*</label>
-                            <input type="number" name="Referrer_Id" value="" min="1000" max="99999" class = "form-control">
-                        </div>
-                        <div class="col-sm-3">
-                            <label class = "label-control">Blood Group:</label>
-                            <select name="Blood_Group" class = "form-control">
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="NA">Unknown</option>
-                            </select>
-                        </div>        
-                        <div class="col-sm-6">
-                            <label class = "label-control">Notes</label>
-                            <textarea class = "form-control" name="Notes" max=250></textarea>
-                        </div>
+                    
+                    
+                    <div class="col-sm-6">
+                        <label>First Name*</label>
+                        <input type="text" name="first_name" class="form-control" value="" required>
+
                     </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label>Year of Birth (YOB)</label>
+                        <input type="number" name="YOB" class="form-control" value="">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>Gender</label>
+                        <select name="Gender" class="form-control">
+                            <option value="M" {% if member_data and member_data.Gender=='M' %}selected{% endif %}>Male</option>
+                            <option value="F" {% if member_data and member_data.Gender=='F' %}selected{% endif %}>Female</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6">
+                        <label>Gotram</label>
+                        <select name="GotramID" class="form-control">
+                            <option value="">Choose one</option>
+                            {% for gotra in gotras %}
+                                <option value="{{ gotra.PG_ID }}" 
+                                    {% if member_data and member_data.Gotram_ID == gotra.PG_ID %}selected{% endif %}>
+                                    {{ gotra.Gotra }}-{{ gotra.Risheya }}-{{ gotra.Pravara }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-6">
+                        <label>Email*</label>
+                        <input type="text" name="email" class="form-control" value="{{ member_data.Email_ID if member_data else '' }}">
+                    </div>
+                    <div class="col-sm-6">
+                        <label>Phone*</label>
+                        <input type="text" name="Phone_Num" class="form-control" value="">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label>Referrer ID</label>
+                        <input type="number" name="Referrer_Id" class="form-control" value="{{ member_data.MEMBER_ID if member_data else '' }}">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>Blood Group:</label>
+                        <select name="Blood_Group" class="form-control">
+                            <option value="">Select</option>
+                            <option value="O+">O+</option><option value="O-">O-</option>
+                            <option value="A+">A+</option><option value="A-">A-</option>
+                            <option value="B+">B+</option><option value="B-">B-</option>
+                            <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                            <option value="NA">Unknown</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6">
+                        <label>Notes</label>
+                        <textarea name="Notes" class="form-control" maxlength="250"></textarea>
+                    </div>
+                </div>
 
                 <!-- Address Section -->
-                    <div class="form-group row">
-                        <div class="col-sm-12" style="position: relative;">
-                            <label class="label-control"><b>Search Address</b></label>
-                            <input type="text" id="address" name="address" class="form-control" />
-                            <div id="suggestions"></div>
-                        </div>
+                <div class="form-group row">
+                    <div class="col-sm-12" style="position: relative;">
+                        <label><b>Search Address</b></label>
+                        <input type="text" id="address" name="address" class="form-control" />
+                        <div id="suggestions"></div>
                     </div>
+                </div>
 
-                    <div class="form-group row">
-                        <div class="col-sm-4">
-                            <label class="label-control">Address Line 1</label>
-                            <input type="text" name="Address_Line1" id="address_line1" class="form-control" readonly>
-                        </div>
-                        <div class="col-sm-4">
-                            <label class="label-control">Address Line 2</label>
-                            <input type="text" name="Address_Line2" id="address_line2" class="form-control" readonly>
-                        </div>
-                        <div class="col-sm-4">
-                            <label class="label-control">Location</label>
-                            <input type="text" name="Location" id="location" class="form-control" readonly>
-                        </div>
+                <div class="form-group row">
+                    <div class="col-sm-4">
+                        <label>Address Line 1</label>
+                        <input type="text" name="Address_Line1" id="address_line1" class="form-control" value="{{ member_data.Address1 if member_data else '' }}" readonly>
                     </div>
-                    <div class="form-group row">
-                        <div class="col-sm-3">
-                            <label class="label-control">City</label>
-                            <input type="text" name="City" id="city" class="form-control" readonly>
-                        </div>
-                        <div class="col-sm-3">
-                            <label class="label-control">State</label>
-                            <input type="text" name="State" id="state" class="form-control" readonly>
-                        </div>
-                        <div class="col-sm-3">
-                            <label class="label-control">ZIP / Postal Code</label>
-                            <input type="text" name="Zip_Code" id="pincode" class="form-control" readonly>
-                        </div>
-                        <div class="col-sm-3">
-                            <label class="label-control">Country</label>
-                            <input type="text" name="Country" id="country" class="form-control" readonly>
-                        </div>
+                    <div class="col-sm-4">
+                        <label>Address Line 2</label>
+                        <input type="text" name="Address_Line2" id="address_line2" class="form-control" value="{{ member_data.Address2 if member_data else '' }}" readonly>
                     </div>
+                    <div class="col-sm-4">
+                        <label>Location</label>
+                        <input type="text" name="Location" id="location" class="form-control" value="{{ member_data.Location if member_data else '' }}" readonly>
+                    </div>
+                </div>
 
-                    <button type="submit" class="btn btn-success mt-2">Create Member</button>
-                </form>
-            </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label>City</label>
+                        <input type="text" name="City" id="city" class="form-control" value="{{ member_data.City if member_data else '' }}" readonly>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>State</label>
+                        <input type="text" name="State" id="state" class="form-control" value="{{ member_data.State if member_data else '' }}" readonly>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>ZIP / Postal Code</label>
+                        <input type="text" name="Zip_Code" id="pincode" class="form-control" value="{{ member_data.PIN_or_ZIP if member_data else '' }}" readonly>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>Country</label>
+                        <input type="text" name="Country" id="country" class="form-control" value="{{ member_data.Country if member_data else '' }}" readonly>
+                    </div>
+                </div>
 
-            <div class="col-md-3">
-                <h5>Recent Members</h5>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr><th>Alias</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for member in members %}
-                        <tr><td>{{ member.Alias }}</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                <button type="submit" class="btn btn-success mt-2">Create Member</button>
+            </form>
+        </div>
+
+        <!-- Sidebar: Recent Members -->
+        <div class="col-md-3">
+            <h5>Recent Members</h5>
+            <table class="table table-bordered">
+                <thead><tr><th>Alias</th></tr></thead>
+                <tbody>
+                    {% for member in members %}
+                    <tr><td>{{ member.Alias }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 
+<!-- Address Autocomplete Script -->
+<script src="{{ url_for('static', filename='js/address_af.js') }}"></script>
 
-    <!-- Load external JavaScript -->
-    <script src="{{ url_for('static', filename='js/address_af.js') }}"></script>
+<!-- Clear Button Script -->
+<script>
+document.getElementById('clearBtn').addEventListener('click', function() {
+    document.getElementById('createForm').reset();
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => input.value = '');
+});
+</script>
 
 </body>
 </html>

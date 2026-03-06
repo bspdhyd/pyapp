@@ -1,0 +1,50 @@
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
+
+<div class="container mt-4">
+
+    <h2>Welcome {{ session['user']['Alias'] }}</h2>
+    <br>
+
+    <p>
+        <strong>Payment confirmation File Upload:</strong><br>
+        column 1: TRN_ID<br>
+        column 2: UTR Number<br>
+        column 3: Payment confirmation ID<br>
+        column 4: Date of payment (yyyymmdd in text format)
+    </p>
+
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <input type="file" name="file" class="form-control">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+
+    {% if table_data %}
+    <hr>
+    <h4 class="mt-4">Uploaded File Preview</h4>
+
+    <table class="table table-bordered table-striped mt-3">
+        <thead>
+            <tr>
+                {% for col in table_header %}
+                <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for row in table_data %}
+            <tr>
+                {% for cell in row %}
+                <td>{{ cell }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+</div>

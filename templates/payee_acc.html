@@ -1,0 +1,226 @@
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- Left: Table -->
+    <div class="col-md-7">
+      <h4 class="mb-3">Payee List</h4>
+
+      <!-- Search Form -->
+      <form method="get" class="form-inline mb-3">
+        <input type="text" name="search" class="form-control mr-2" placeholder="Search Name or Payee ID" value="{{ search_query }}">
+        <button type="submit" class="btn btn-primary mr-2">Search</button>
+        <a href="{{ url_for('payee_acc.payee_accounts') }}" class="btn btn-secondary">Reset</a>
+      </form>
+
+      <div class="card shadow-sm">
+        <div class="card-header">Existing Accounts</div>
+        <div class="card-body p-2">
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered table-hover mb-0" style="table-layout: auto; width: 100%;">
+              <thead class="thead-light">
+                <tr>
+                  <th style="max-width: 200px; word-wrap: break-word; white-space: normal;">Nick Name</th>
+                  <th>IFSC Code</th>
+                  <th>Account Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for acc in accounts %}
+                <tr>
+                  <td style="max-width: 200px; word-wrap: break-word; white-space: normal;">{{ acc.get('Nick_Name','') }}</td>
+                  <td>{{ acc.get('IFSC_CODE','') }}</td>
+                  <td>{{ acc.get('Account_Status','') }}</td>
+                  <td>
+                    <button type="button" class="btn btn-sm btn-primary select-btn"
+                      data-payee-id="{{ acc['Payee_ID'] }}"
+                      data-nick="{{ acc.get('Nick_Name','') }}"
+                      data-ifsc="{{ acc.get('IFSC_CODE','') }}"
+                      data-status="{{ acc.get('Account_Status','') }}"
+                      data-name="{{ acc.get('Name_In_Account','') }}"
+                      data-acnt="{{ acc.get('Payee_Acnt_Num','') }}"
+                      data-branch="{{ acc.get('Branch','') }}"
+                      data-passbook="{{ acc.get('Passbook_Img_URL','') }}"
+                      data-reg="{{ acc.get('Bank_Registration_Code','') }}"
+                      data-bank="{{ acc.get('Bank_Name','') }}"
+                      data-keynotes="{{ acc.get('Key_Notes','') }}"
+                    >Select</button>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="4" class="text-center">No Accounts Found</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Form -->
+    <div class="col-md-5">
+      <h4 class="mb-3">Add / Edit Payee Account</h4>
+      <div class="card border-primary shadow-sm">
+        <div class="card-body">
+          <form method="POST" id="payee-form" enctype="multipart/form-data">
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label>Payee ID</label>
+                <div class="input-group">
+                  <input type="number" name="Payee_ID" id="Payee_ID" class="form-control form-control-sm" value="0">
+                  <div class="input-group-append">
+                    <button type="button" class="btn btn-info btn-sm" id="fetch-payee">Fetch</button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group col-md-6">
+                <label>Nick Name</label>
+                <input type="text" name="Nick_Name" id="Nick_Name" class="form-control form-control-sm" readonly>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label>Payee Account Number</label>
+                <input type="text" name="Payee_Acnt_Num" id="Payee_Acnt_Num" class="form-control form-control-sm" required>
+              </div>
+              <div class="form-group col-md-6">
+                <label>Name in Account</label>
+                <input type="text" name="Name_In_Account" id="Name_In_Account" class="form-control form-control-sm" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label>Bank Name</label>
+                <input type="text" name="Bank_Name" id="Bank_Name" class="form-control form-control-sm" required>
+              </div>
+              <div class="form-group col-md-6">
+                <label>Branch</label>
+                <input type="text" name="Branch" id="Branch" class="form-control form-control-sm" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label>IFSC Code</label>
+                <input type="text" name="IFSC_CODE" id="IFSC_CODE" class="form-control form-control-sm" required>
+              </div>
+              <div class="form-group col-md-4">
+                <label>Bank Reg Code</label>
+                <input type="text" name="Bank_Registration_Code" id="Bank_Registration_Code" class="form-control form-control-sm" required>
+              </div>
+              <div class="form-group col-md-4">
+                <label>Account Status</label>
+                <select name="Account_Status" id="Account_Status" class="form-control form-control-sm" required>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Pending">Pending</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Key Notes</label>
+              <textarea name="Key_Notes" id="Key_Notes" class="form-control form-control-sm"></textarea>
+            </div>
+
+            <!-- Account Proof Image -->
+            <div class="form-group">
+              <label>Account Proof (Image)</label>
+              <input type="file" name="Account_Proof_Img" id="Account_Proof_Img" class="form-control form-control-sm" accept="image/*">
+              <div id="account-proof-preview" class="mt-2"></div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <button type="submit" class="btn btn-success">Save</button>
+              <button type="reset" class="btn btn-secondary" id="reset-form">Reset</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Fill form when Select button is clicked
+  document.querySelectorAll('.select-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mapping = {
+        Payee_ID: "payeeId",
+        Name_In_Account: "name",
+        Payee_Acnt_Num: "acnt",
+        Branch: "branch",
+        IFSC_CODE: "ifsc",
+        Passbook_Img_URL: "passbook",
+        Bank_Registration_Code: "reg",
+        Account_Status: "status",
+        Nick_Name: "nick",
+        Bank_Name: "bank",
+        Key_Notes: "keynotes"
+      };
+
+      for (const field in mapping) {
+        document.getElementById(field).value = btn.dataset[mapping[field]] || '';
+      }
+      document.getElementById('account-proof-preview').innerHTML = ''; // Clear previous image preview
+    });
+  });
+
+  // Reset form clears Payee_ID, Nick_Name and preview
+  document.getElementById('reset-form').addEventListener('click', () => {
+    document.getElementById('Payee_ID').value = 0;
+    document.getElementById('Nick_Name').value = "";
+    document.getElementById('Nick_Name').readOnly = false;
+    document.getElementById('account-proof-preview').innerHTML = '';
+  });
+
+  // Fetch Payee Name for Nick_Name autofill
+  document.getElementById('fetch-payee').addEventListener('click', async () => {
+    const payeeId = document.getElementById('Payee_ID').value;
+    if (!payeeId || payeeId <= 0) {
+      alert("Please enter a valid Payee ID.");
+      return;
+    }
+    try {
+      const baseUrl = "{{ url_for('payee_acc.fetch_payee_name', payee_id=0) }}".replace("0", payeeId);
+      const res = await fetch(baseUrl);
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        document.getElementById('Nick_Name').value = data.name;
+        document.getElementById('Nick_Name').readOnly = true;
+      } else {
+        alert(data.error || "Payee not found");
+        document.getElementById('Nick_Name').value = "";
+        document.getElementById('Nick_Name').readOnly = false;
+      }
+    } catch (err) {
+      alert("Error fetching payee name: " + err);
+      document.getElementById('Nick_Name').readOnly = false;
+    }
+  });
+
+  // Preview uploaded Account Proof image as thumbnail
+  document.getElementById('Account_Proof_Img').addEventListener('change', function() {
+    const file = this.files[0];
+    const previewDiv = document.getElementById('account-proof-preview');
+    previewDiv.innerHTML = '';
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.classList.add('img-thumbnail');
+        img.style.maxWidth = '80px';
+        previewDiv.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+</script>

@@ -23,7 +23,7 @@
                             <tr>
                                 <th>Event</th><th>Member</th>
                                 <th>Reg</th><th>Role</th>
-                                <th>Updated By</th><th>UpdateTime</th>
+                                <th>Updated By</th><th>UpdateTime</th>   
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -32,7 +32,7 @@
                             <tr>
                                 <td>{{ reg.EVENT_ID }}</td><td>{{ reg.MEMBER_ID }}</td>
                                 <td>{{ reg.Registered }}</td><td>{{ reg.PrimaryRole }}</td>
-                                <td>{{ reg.UpdatedBy}}</td><td>{{ reg.UpdatedDate}}</td>
+                                <td>{{ reg.UpdatedBy}}</td><td>{{ reg.UpdatedDate}}</td>  
                                 <td>
                                     <button class="btn btn-warning btn-sm"
                                             onclick="populateUpdateForm('{{ reg.EVENT_ID }}', '{{ reg.MEMBER_ID }}', '{{ reg.Registered }}', '{{ reg.PrimaryRole }}')">
@@ -67,10 +67,21 @@
                             <label for="member_id">Member ID(s)</label>
                             <input type="text" name="member_id" id="member_id" class="form-control" placeholder="E.g. 1001,1002 or 1001 1002" required>
                         </div>
-                        <div class="form-group">
-                            <label for="registered">Registered (Y/N)</label>
-                            <input type="text" name="registered" id="registered" class="form-control" required pattern="[YN]" title="Only 'Y' or 'N' is allowed">
+                        <div class="form-row row">
+                            <div class="form-group col-md-4">
+                                <label for="registered">Registered (Y/N)</label>
+                                <input type="text" name="registered" id="registered" class="form-control" required pattern="[YN]" title="Only 'Y' or 'N' is allowed">
+                            </div>
+                            <div class="form-group col-md-8">
+                                <label for="primary_role">Primary Role</label>
+                                <select name="primary_role" id="primary_role" class="form-control" required>
+                                    {% for roles in eventroles %}
+                                        <option value="{{ roles.Sub_Category_Desc }}" {% if roles.Sub_Category_Desc == PRole %}selected{% endif %}>{{ roles.Sub_Category_Desc }}</option>
+                                     {% endfor %}
+                                </select>
+                            </div>
                         </div>
+                        
                         <button type="submit" name="action" value="create" class="btn btn-success btn-sm mt-2">Create Registration</button>
                     </form>
 

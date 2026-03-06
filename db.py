@@ -39,7 +39,7 @@ def run_crud_query(query, params):
     conn.close()
     
 def get_user_by_credentials(member_id, password):
-    query = """SELECT MEMBER_ID, MEMBER_TYPE, Alias, Email_ID, Referrer_ID, Phone_Num FROM BSPD_Member 
+    query = """SELECT MEMBER_ID, MEMBER_TYPE, Alias, Email_ID, Referrer_ID, Phone_Num, MEMBER_TYPE FROM BSPD_Member 
                       WHERE MEMBER_ID = %s AND Status = 'Active' AND Password = MD5(%s) """
     params = [member_id, password]   
     return run_fetchone_query(query, params)
@@ -58,12 +58,12 @@ def create_tokens(logid,ipaddress):
     return run_crud_query(query, params)
 
 def get_events():
-    query = "SELECT * FROM BSPD_Event ORDER BY Event_date DESC LIMIT 7"
+    query = "SELECT * FROM BSPD_Event ORDER BY Event_date DESC LIMIT 10"
     params = []
     return run_fetchall_query(query, params)
     
 def get_future_events():
-    query = "SELECT * FROM BSPD_Event where Event_Status = '0' "
+    query = "SELECT * FROM BSPD_Event where Event_Status = '0' ORDER BY Event_date"
     params = []
     return run_fetchall_query(query, params)
 
@@ -91,7 +91,7 @@ def delete_event(event_id, entity_id):
     run_crud_query(query, params)
     
 def get_att_reg_event(event_id, entity_id):
-    query = "Select * from BSPD_Event_Registration  Where EVENT_ID = %s and DEShCode = %s ORDER by UpdatedDate DESC LIMIT 10"
+    query = "Select * from BSPD_Event_Registration  Where EVENT_ID = %s and DEShCode = %s ORDER by UpdatedDate DESC"
     params = [event_id, entity_id]
     return run_fetchall_query(query, params)
     
@@ -204,7 +204,7 @@ def delete_contribution(member_id, event_id):
     
 def get_contribution_report(member_id=None, event_id=None):
     query = """ SELECT MEMBER_ID, EVENT_ID, Amount, Contribution_Type, Reference_Details, Transaction_Code
-        FROM BSPD_Member_Contribution
+        FROM BSPD_View_Contribution_Report
         WHERE 1=1 """
     params = []
     if member_id:
@@ -229,9 +229,14 @@ def get_expenses_report(member_id=None, event_id=None):
     return run_fetchall_query(query, params)
     
 def get_attendance_report(member_id=None, event_id=None):
-    query = """ SELECT EVENT_ID, MEMBER_ID, Registered, Attended
-        FROM BSPD_Event_Registration
-        WHERE 1=1 """
+    query = """SELECT bm.Alias as RegisteredMember, (year(SYSDATE()) - bm.Year_Of_Birth) as Age, ifnull(ber.Attended ,'-') as Attendance,
+ ber.PrimaryRole as PrimaryRole,  bm2.Alias as RegisteredBy, date(ber.CreatedDate ) as RegisteredDate
+   FROM BSPD_Event_Registration ber, 
+        BSPD_Member bm,
+        BSPD_Member bm2 
+  WHERE  ber.MEMBER_ID =bm.MEMBER_ID 
+   AND ber.CreatedBy =bm2.MEMBER_ID"""
+    
     params = []
     if member_id:
         query += " AND MEMBER_ID = %s"
@@ -239,6 +244,8 @@ def get_attendance_report(member_id=None, event_id=None):
     if event_id:
         query += " AND EVENT_ID = %s"
         params.append(event_id)
+    query += " ORDER BY PrimaryRole ASC"
+
     return run_fetchall_query(query, params)
     
 def get_recognition_report(member_id=None, event_id=None):
@@ -252,6 +259,13 @@ def get_recognition_report(member_id=None, event_id=None):
     if event_id:
         query += " AND EVENT_ID = %s"
         params.append(event_id)
+    return run_fetchall_query(query, params)
+    
+def get_registration_report(member_id=None, event_id=None):
+    query = """ SELECT r.EVENT_ID, m.Alias, m.Phone_num, r.PrimaryRole
+        FROM BSPD_Event_Registration r JOIN BSPD_Member m 
+        ON r.MEMBER_ID = m.MEMBER_ID WHERE r.EVENT_ID = %s """
+    params = [event_id]
     return run_fetchall_query(query, params)
     
 def get_references_report(member_id):
@@ -282,6 +296,8 @@ def check_dup_member(surname, gender, yob, gotramid, email, phonenum):
     query = """SELECT Alias from BSPD_Member 
                 where Surname = %s and Gender = %s and Year_Of_Birth = %s and Gotram_ID = %s and Email_ID = %s and Phone_Num = %s """
     params = [surname, gender, yob, gotramid, email, phonenum]
+    print("YOB :",query)
+    print("Params :",params)
     return run_fetchone_query(query, params)
 
 def get_podili_assignment(year_of_birth=None, alias=None, assigned_status='all'):
@@ -440,11 +456,17 @@ def get_transaction_code_master():
     params = []
     return run_fetchall_query(query, params)
     
-def update_member_by_id(member_id, Member_Type, first_name, gender, gotram_id, Father_id, Mother_id, Spouse_id, YOB, nakshatra_id, Pada, Email_ID, notes, address1, address2, location, city, state, zipcode, country):
-    
-    query = """ UPDATE BSPD_Member SET Name = %s, MEMBER_TYPE = %s, Gender = %s, Gotram_ID = %s, Father_ID = %s, Mother_ID = %s, Spouse_ID = %s, Year_Of_Birth = %s, Nakshatra = %s, Pada = %s, Email_ID = %s, Notes = %s,  Address1 = %s, Address2 = %s, Location = %s, City = %s, State = %s, PIN_or_ZIP = %s, Country = %s WHERE MEMBER_ID = %s """
-    params = [ first_name, Member_Type, gender, gotram_id, Father_id, Mother_id, Spouse_id, YOB, nakshatra_id, Pada, Email_ID, notes, address1, address2, location, city, state, zipcode, country, member_id ]
+def update_member_by_id(member_id, first_name, last_name, gender, dupindicator, phone_num, gotram_id, Father_id, Mother_id, Spouse_id, YOB, nakshatra_id, Pada, Email_ID, notes, address1, address2, location, city, state, zipcode, country, status):
+    upd_memid = session['user']['MEMBER_ID']
+    query = """ UPDATE BSPD_Member SET Name = %s, Surname = %s, Gender = %s, DupIndicator = %s, Phone_Num = %s, Gotram_ID = %s, Father_ID = %s, Mother_ID = %s, Spouse_ID = %s, Year_Of_Birth = %s, Nakshatra = %s, Pada = %s, Email_ID = %s, Notes = %s,  Address1 = %s, Address2 = %s, Location = %s, City = %s, State = %s, PIN_or_ZIP = %s, Country = %s, Status = %s, Updated_By = %s WHERE MEMBER_ID = %s """
+    params = [ first_name, last_name, gender,  dupindicator, phone_num, gotram_id, Father_id, Mother_id, Spouse_id, YOB, nakshatra_id, Pada, Email_ID, notes, address1, address2, location, city, state, zipcode, country, status, upd_memid, member_id ]
     run_crud_query(query, params)
+    
+#def update_member_by_id(member_id, Member_Type, first_name, gender, phone_num, gotram_id, Father_id, Mother_id, Spouse_id, YOB, nakshatra_id, Pada, Email_ID, notes, address1, address2, location, city, state, zipcode, country):
+    
+#    query = """ UPDATE BSPD_Member SET Name = %s, MEMBER_TYPE = %s, Gender = %s, Phone_Num = %s, Gotram_ID = %s, Father_ID = %s, Mother_ID = %s, Spouse_ID = %s, Year_Of_Birth = %s, Nakshatra = %s, Pada = %s, Email_ID = %s, Notes = %s,  Address1 = %s, Address2 = %s, Location = %s, City = %s, State = %s, PIN_or_ZIP = %s, Country = %s WHERE MEMBER_ID = %s """
+#    params = [ first_name, Member_Type, gender, phone_num, gotram_id, Father_id, Mother_id, Spouse_id, YOB, nakshatra_id, Pada, Email_ID, notes, address1, address2, location, city, state, zipcode, country, member_id ]
+#    run_crud_query(query, params)
 
 def get_nakshatras():
     query = "SELECT * from BSPD_Nakshatra where NID > 0 order by All_S_English"
@@ -464,7 +486,7 @@ def update_member_privileges(member_id, smarta_purohit, veda_pandit):
     run_crud_query(query, params)
 
 def get_all_requests():
-    query = "SELECT * FROM BSPD_Request"
+    query = "SELECT * FROM BSPD_Request ORDER BY 1 DESC"
     params = []
     return run_fetchall_query(query, params)
     
@@ -476,12 +498,12 @@ def insert_request(category, description, status):
     params = [updated_by, category, description, status, updated_ts, updated_by, updated_ts]
     run_crud_query(query, params)
     
-def update_request(request_num, status, resolution, resolver_id):
+def update_request(request_num, status, description, resolution, resolver_id):
     updated_ts = datetime.now()
     updated_by = session['user']['MEMBER_ID']
-    query = """ UPDATE BSPD_Request SET Req_Status = %s, Req_Resolution = %s, Req_ResolverID = %s, Updated_By = %s, Updated_Timestamp = %s
+    query = """ UPDATE BSPD_Request SET Req_Status = %s, Description = %s, Req_Resolution = %s, Req_ResolverID = %s, Updated_By = %s, Updated_Timestamp = %s
                 WHERE Request_Num = %s """
-    params = [status, resolution, resolver_id, updated_by, updated_ts, request_num]
+    params = [status, description, resolution, resolver_id, updated_by, updated_ts, request_num]
     run_crud_query(query, params)
 
 def get_all_requests_filtered(req_member_id=None, category=None, status=None):
@@ -497,6 +519,7 @@ def get_all_requests_filtered(req_member_id=None, category=None, status=None):
     if status:
         query += " AND Req_Status = %s"
         params.append(status)
+    query += " ORDER BY 1 DESC"
 
     return run_fetchall_query(query, params)
     
@@ -630,3 +653,141 @@ def insert_sib_collection_row(orgname, slno, id_value, name, tranid, trandate, t
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s) """
     params = [orgname, slno, id_value, name, tranid, trandate, tranamt, source]
     return run_crud_query(query, params)
+    
+def get_all_payees():
+    query = "SELECT * FROM BSPD_Payee"
+    params = []  
+    return run_fetchall_query(query, params)
+    
+def insert_payee(data, file=None):
+    query = """ INSERT INTO BSPD_Payee (Name, MEMBER_ID, Govt_ID, Govt_ID_Num, Purpose, Email_ID, Phone_Num, Address1, Address2, City, 
+            State, Country, Aadhar_Img_URL, Govt_ID_Img, Created_By, created ) VALUES (
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW() ) """
+    params = ( data['Name'], data['MEMBER_ID'], data['Govt_ID'], data['Govt_ID_Num'], data['Purpose'],
+            data['Email_ID'], data['Phone_Num'], data['Address1'], data['Address2'], data['City'],
+            data['State'], data['Country'], data['Aadhar_Img_URL'], file, data['Created_By'] )
+    run_crud_query(query, params)
+
+def update_payee(data, file=None):
+    fields = [ 'Name', 'MEMBER_ID', 'Govt_ID', 'Govt_ID_Num', 'Purpose', 'Email_ID', 'Phone_Num',
+        'Address1', 'Address2', 'City', 'State', 'Country', 'Aadhar_Img_URL', 'Updated_By' ]
+    if file:
+        fields.append('Govt_ID_Img')
+    
+    query = f""" UPDATE BSPD_Payee SET
+            {', '.join(f"{field} = %s" for field in fields)},
+            updated = NOW() WHERE Payee_ID = %s """
+    params = tuple(data[field] for field in fields if field != 'Govt_ID_Img')
+    if file:
+        params += (file,)
+    params += (data['Payee_ID'],)
+    run_crud_query(query, params)
+
+def search_payee(term):
+    like_term = f"%{term}%"
+
+    query = """ SELECT * FROM BSPD_Payee WHERE Payee_ID LIKE %s or MEMBER_ID like %s or Name LIKE %s """
+    params = (like_term, like_term, like_term)
+    return run_fetchall_query(query, params)
+
+def get_member_by_id(member_id):
+    query = """ SELECT MEMBER_ID, Name, Email_ID, Phone_Num, Address1, Address2, City, State, Country
+        FROM BSPD_Member WHERE MEMBER_ID = %s """
+    params = [member_id]
+    return run_fetchone_query(query, params)
+    
+def get_all_payee_accounts():
+    query = "SELECT * FROM BSPD_Payee_Account LIMIT 20"
+    params = []  
+    return run_fetchall_query(query, params)
+
+def insert_payee_account(d):
+    query = """INSERT INTO BSPD_Payee_Account 
+               (Payee_ID, Payee_Acnt_Num, Name_In_Account, Nick_Name, Bank_Name, Branch, IFSC_CODE, Passbook_Img_URL, Bank_Registration_Code, Account_Status, Key_Notes, Account_Proof_Img, CreatedBy, CreatedDt)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW())"""
+    params = (
+        d["Payee_ID"], d["Payee_Acnt_Num"], d["Name_In_Account"], d.get("Nick_Name"),
+        d["Bank_Name"], d["Branch"], d["IFSC_CODE"], d.get("Passbook_Img_URL"),
+        d["Bank_Registration_Code"], d["Account_Status"], d.get("Key_Notes"),
+        d.get("Account_Proof_Img"), d["CreatedBy"]
+    )
+    return run_crud_query(query, params)
+
+def update_payee_account(d):
+    query = """UPDATE BSPD_Payee_Account SET
+               Payee_Acnt_Num=%s, Name_In_Account=%s, Nick_Name=%s, Bank_Name=%s, Branch=%s,
+               IFSC_CODE=%s, Passbook_Img_URL=%s, Bank_Registration_Code=%s, Account_Status=%s,
+               Key_Notes=%s, Account_Proof_Img=%s
+               WHERE Payee_ID=%s"""
+    params = (
+        d["Payee_Acnt_Num"], d["Name_In_Account"], d.get("Nick_Name"), d["Bank_Name"], d["Branch"],
+        d["IFSC_CODE"], d.get("Passbook_Img_URL"), d["Bank_Registration_Code"], d["Account_Status"],
+        d.get("Key_Notes"), d.get("Account_Proof_Img"), d["Payee_ID"]
+    )
+    return run_crud_query(query, params)
+
+def search_payee_accounts(search_term):
+    query = """
+        SELECT * 
+        FROM BSPD_Payee_Account
+        WHERE Payee_ID = %s OR Nick_Name LIKE %s OR Name_In_Account LIKE %s
+    """
+    try:
+        payee_id = int(search_term)
+    except ValueError:
+        payee_id = -1 
+
+    params = (payee_id, f"%{search_term}%", f"%{search_term}%")
+    return run_fetchall_query(query, params)
+
+def get_payee_name_by_id(payee_id):
+    query = "SELECT Name FROM BSPD_Payee WHERE Payee_ID = %s"
+    params = [payee_id]
+    result = run_fetchall_query(query, params)
+    return result[0]["Name"] if result else None
+    
+def update_payment_confirmation(trn_id, utr_number, confirmation_id, payment_date):
+    query = """
+        UPDATE BSPD_Expenses
+        SET 
+            UTR_Number = %s,
+            Payment_Confirmation_ID = %s,
+            Payment_Date = %s,
+            Payment_Status = 'paid'
+        WHERE TRN_ID = %s
+    """
+    params = [utr_number, confirmation_id, payment_date, trn_id]
+    run_crud_query(query, params)
+    
+def search_vmt_members(search_values):
+    if not search_values:
+        return []
+
+    placeholders = ", ".join(["%s"] * len(search_values))
+    query = f"""
+        SELECT MEMBER_ID, Alias, Father_ID, Mother_ID, Spouse_ID, Referrer_ID
+        FROM BSPD_Member
+        WHERE MEMBER_ID IN ({placeholders})
+          OR Alias IN ({placeholders})
+        ORDER BY MEMBER_ID ASC
+    """
+    params = search_values + search_values
+    return run_fetchall_query(query, params)
+
+def update_vmt_member(member_id, father, mother, spouse, referrer):
+    query = """
+        UPDATE BSPD_Member
+        SET Father_ID=%s, Mother_ID=%s, Spouse_ID=%s, Referrer_ID=%s
+        WHERE MEMBER_ID=%s
+    """
+    run_crud_query(query, [father, mother, spouse, referrer, member_id])
+    
+def get_vmt_member_by_id(member_id):
+    query = """
+        SELECT MEMBER_ID, Alias, Father_ID, Mother_ID, Spouse_ID, Referrer_ID
+        FROM BSPD_Member
+        WHERE MEMBER_ID = %s
+    """
+    rows = run_fetchall_query(query, [member_id])
+    return rows[0] if rows else None
+    

@@ -32,12 +32,13 @@ def update_request():
     try:
         request_num = request.form['request_num']
         status = request.form['status']
+        description = request.form['description']
         resolution = request.form['resolution']
         resolver_id = request.form.get('resolver_id') or None
         updated_by = session['user']['MEMBER_ID']  # From session
         now = datetime.now()
 
-        db.update_request(request_num, status, resolution, resolver_id)
+        db.update_request(request_num, status, description, resolution, resolver_id)
         flash("Request updated successfully", "success")
     except Exception as e:
         flash("Error updating request: " + str(e), "danger")

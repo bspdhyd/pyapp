@@ -20,6 +20,8 @@ def update_member():
         search_id = request.form.get('search_id')
         action = request.form.get('action')
         image = request.files.get('image')
+        captured_image_data = request.form.get('captured_image')  # base64 image from webcam
+
 
         if mem_id and search_id:
             mem_id = int(mem_id)
@@ -31,7 +33,10 @@ def update_member():
             else:
             # Editable fields
                 first_name=request.form.get('Name')
+                last_name = request.form.get('Surname')
+                dupindicator = request.form.get('DupIndicator')
                 gender=request.form.get('Gender')
+                phone_num=request.form.get('PhoneNum')
                 gotram_id = request.form.get('GotramID')
                 Email_ID = request.form.get('Email_ID')
                 Father_id=request.form.get('Father_ID')
@@ -49,32 +54,59 @@ def update_member():
                 state = request.form.get('State')
                 zipcode = request.form.get('Zip_Code')
                 country = request.form.get('Country')
+                status = request.form.get('Status') 
                 smarta_purohit = request.form.get('Smarta_Purohit')
                 veda_pandit = request.form.get('Veda_Pandit')
 
                 if action == 'update':
                     try:
-                        db.update_member_by_id(mem_id, Member_Type, first_name, gender, gotram_id, Father_id, Mother_id, Spouse_id, YOB, nakshatra_id, Pada, Email_ID, notes, address1, address2, location, city, state, zipcode, country)
+#                        db.update_member_by_id(mem_id, Member_Type, first_name, gender, phone_num, gotram_id, Father_id, Mother_id, Spouse_id, YOB, nakshatra_id, Pada, Email_ID, notes, address1, address2, location, city, state, zipcode, country)
+                        db.update_member_by_id(
+                            mem_id, first_name, last_name, gender, dupindicator, phone_num, gotram_id,
+                            Father_id, Mother_id, Spouse_id, YOB, nakshatra_id, Pada,
+                            Email_ID, notes, address1, address2, location, city, state,
+                            zipcode, country, status
+                        )
                         db.update_member_privileges(mem_id, smarta_purohit, veda_pandit)
-                        
+                        # 1. Uploaded Image
                         if image and image.filename != '':
                             try:
                                 img = Image.open(image)
                                 img = img.convert('RGB')  # Ensure JPEG compatibility
-                                img = img.resize((100, 90)) 
+                                img = img.resize((100, 90))
 
                                 img_io = BytesIO()
                                 img.save(img_io, format='JPEG')
                                 img_io.seek(0)
 
                                 db.upload_member_image(mem_id, img_io.read())
-                                flash("Image resized and uploaded successfully.", "success")
+                                flash("Uploaded image resized and saved successfully.", "success")
                             except Exception as e:
-                                flash(f"Error processing image: {e}", "danger")
+                                flash(f"Error processing uploaded image: {e}", "danger")
+
+                        # 2. Captured Image (base64 from webcam)
+                        elif captured_image_data:
+                            try:
+                                header, encoded = captured_image_data.split(",", 1)  # Separate base64 header
+                                img_bytes = base64.b64decode(encoded)
+
+                                img = Image.open(BytesIO(img_bytes))
+                                img = img.convert('RGB')
+                                img = img.resize((100, 90))
+
+                                img_io = BytesIO()
+                                img.save(img_io, format='JPEG')
+                                img_io.seek(0)
+
+                                db.upload_member_image(mem_id, img_io.read())
+                                flash("Captured image resized and saved successfully.", "success")
+                            except Exception as e:
+                                flash(f"Error processing captured image: {e}", "danger")
+
                         flash('Member updated successfully.', 'success')
+
                     except Exception as e:
-                        flash(f'Error updating Member: Please try again: {e}', 'danger')
-                    
+                        flash(f'Error updating Member: Please try again: {e}', 'danger')                    
         member = db.get_member_data(search_id)
         if member:
             None

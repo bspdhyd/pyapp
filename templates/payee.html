@@ -1,0 +1,259 @@
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- Payee List -->
+    <div class="col-md-5">
+      <h4>Payee List</h4>
+      <form method="GET" class="form-inline mb-2">
+        <input type="text" name="search" class="form-control mr-2" placeholder="Search Name / Member ID / Payee ID" value="{{ request.args.get('search', '') }}">
+        <button class="btn btn-primary">Search</button>
+        <a href="{{ url_for('payee.view_payees') }}" class="btn btn-secondary ml-2">Reset</a>
+      </form>
+
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover">
+          <thead class="thead-light">
+            <tr>
+              <th>ID</th><th>Name</th><th>Member ID</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in payees %}
+              <tr>
+                <td>{{ row['Payee_ID'] }}</td>
+                <td>{{ row['Name'] }}</td>
+                <td>{{ row['MEMBER_ID'] or '' }}</td>
+                <td>
+                  <button class="btn btn-sm btn-warning select-btn"
+                    {% for key, val in row.items() %}
+                      data-{{ key | lower }}="{{ val }}"
+                    {% endfor %}>
+                    Select
+                  </button>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right Side Dynamic Form -->
+    <div class="col-md-7">
+      <div id="formContainer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Form Template -->
+<script type="text/template" id="createFormTemplate">
+  <div id="createFormCard" class="card border-secondary w-100">
+    <div class="card-header bg-light text-dark"><strong>Add New Payee</strong></div>
+    <div class="card-body">
+      <form method="POST" enctype="multipart/form-data" id="createPayeeForm">
+        <!-- Member ID + Fetch -->
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>BSPD Mem ID</label>
+            <input type="text" name="MEMBER_ID" id="member_id" class="form-control">
+          </div>
+          <div class="form-group col-md-2 d-flex align-items-end">
+            <button type="button" id="fetchMemberBtn" class="btn btn-info btn-block">Fetch</button>
+          </div>
+          <div class="form-group col-md-6">
+            <label>Name*</label>
+            <input type="text" name="Name" class="form-control" required>
+          </div>
+        </div>
+
+        <!-- Payee Fields -->
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>Govt ID*</label>
+            <select name="Govt_ID" class="form-control" required>
+              <option value="">-- Select ID Type --</option>
+              <option value="Aadhar Card">Aadhar Card</option>
+              <option value="PAN Card">PAN Card</option>
+            </select>
+          </div>
+          <div class="form-group col-md-6">
+            <label>Govt ID Num*</label>
+            <input type="text" name="Govt_ID_Num" class="form-control" required>
+          </div>
+
+          {% for field in ['Purpose', 'Email_ID', 'Phone_Num', 'Address1', 'Address2', 'City', 'State', 'Country'] %}
+            <div class="form-group col-md-4">
+              <label>
+                {{ field.replace('_', ' ') }}{% if field != 'Address2' %}*{% endif %}
+              </label>
+              <input type="{{ 'email' if 'Email' in field else 'text' }}"
+                     name="{{ field }}"
+                     class="form-control"
+                     {% if field != 'Address2' %}required{% endif %}>
+            </div>
+          {% endfor %}
+
+          <!-- Govt ID Image Upload -->
+          <div class="form-group col-md-12">
+            <label>Govt ID Image*</label>
+            <input type="file" name="Govt_ID_Img" id="createGovtIDImg"
+                   class="form-control-file" accept="image/*" >
+            <div class="mt-2">
+              <img id="createGovtIDImgPreview" src="" alt="Govt ID Preview"
+                   class="img-thumbnail" style="max-height:120px; display:none;">
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <button type="submit" class="btn btn-success">Create</button>
+          <button type="reset" class="btn btn-secondary" id="createResetBtn">Reset</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</script>
+
+<!-- Edit Form Template -->
+<script type="text/template" id="editFormTemplate">
+  <div id="editFormCard" class="card border-primary w-100">
+    <div class="card-header bg-light text-dark"><strong>Edit Payee</strong></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('payee.update_payee') }}" enctype="multipart/form-data">
+        <input type="hidden" name="Payee_ID" id="editPayee_ID">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>Name</label>
+            <input type="text" name="Name" id="editName" class="form-control" required>
+          </div>
+          <div class="form-group col-md-6">
+            <label>Member ID</label>
+            <input type="text" name="MEMBER_ID" id="editMEMBER_ID" class="form-control">
+          </div>
+          <div class="form-group col-md-6">
+            <label>Govt ID</label>
+            <select name="Govt_ID" id="editGovt_ID" class="form-control" required>
+              <option value="">-- Select ID Type --</option>
+              <option value="Aadhar Card">Aadhar Card</option>
+              <option value="PAN Card">PAN Card</option>
+            </select>
+          </div>
+          <div class="form-group col-md-6">
+            <label>GovtID Num</label>
+            <input type="text" name="Govt_ID_Num" id="editGovt_ID_Num" class="form-control" required>
+          </div>
+
+          {% for field in ['Purpose', 'Email_ID', 'Phone_Num', 'Address1', 'Address2', 'City', 'State', 'Country'] %}
+            <div class="form-group col-md-4">
+              <label>{{ field.replace('_', ' ') }}</label>
+              <input type="{{ 'email' if 'Email' in field else 'text' }}"
+                     name="{{ field }}"
+                     id="edit{{ field }}"
+                     class="form-control"
+                     {% if field != 'Address2' %}required{% endif %}>
+            </div>
+          {% endfor %}
+
+          <!-- Govt ID Image Upload -->
+          <div class="form-group col-md-12">
+            <label>Govt ID Image</label>
+            <input type="file" name="Govt_ID_Img" id="editGovtIDImg" class="form-control-file" accept="image/*">
+            <div class="mt-2">
+              <img id="editGovtIDImgPreview" src="" alt="Govt ID Preview" class="img-thumbnail" style="max-height:120px; display:none;">
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <button type="submit" class="btn btn-success">Update</button>
+          <button type="button" class="btn btn-secondary ml-2" id="cancelEditBtn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</script>
+
+<script>
+  // Load default create form at startup
+  $(document).ready(function() {
+    $("#formContainer").html($("#createFormTemplate").html());
+  });
+
+  // Switch to Edit Form
+  $(document).on("click", ".select-btn", function() {
+    let btn = $(this);
+    let template = $("#editFormTemplate").html();
+    $("#formContainer").html(template);
+
+    let fields = ['Payee_ID','Name','MEMBER_ID','Govt_ID','Govt_ID_Num','Purpose','Email_ID','Phone_Num','Address1','Address2','City','State','Country'];
+    fields.forEach(f => {
+      let val = btn.data(f.toLowerCase());
+      if (f === 'Govt_ID') {
+        $('#editGovt_ID').val(val);
+      } else {
+        $('#edit' + f).val(val);
+      }
+    });
+
+    if (btn.data("govt_id_img")) {
+      $("#editGovtIDImgPreview")
+        .attr("src", "data:image/png;base64," + btn.data("govt_id_img"))
+        .show();
+    }
+  });
+
+  // Cancel Edit → Back to Create Form
+  $(document).on("click", "#cancelEditBtn", function() {
+    $("#formContainer").html($("#createFormTemplate").html());
+  });
+
+  // Fetch Member Script
+  $(document).on("click", "#fetchMemberBtn", function() {
+    let memberId = $("#member_id").val();
+    if (!memberId) {
+      alert("Please enter Member ID first");
+      return;
+    }
+
+    $.post("{{ url_for('payee.fetch_member') }}", { member_id: memberId }, function(data) {
+      if (data && data.Name) {
+        $("[name='Name']").val(data.Name);
+        $("[name='Email_ID']").val(data.Email_ID);
+        $("[name='Phone_Num']").val(data.Phone_Num);
+        $("[name='Address1']").val(data.Address1);
+        $("[name='Address2']").val(data.Address2);
+        $("[name='City']").val(data.City);
+        $("[name='State']").val(data.State);
+        $("[name='Country']").val(data.Country);
+      } else {
+        alert("No member found with this ID");
+      }
+    }, "json");
+  });
+
+  // Preview Govt ID image on upload (Create)
+  $(document).on("change", "#createGovtIDImg", function() {
+    let reader = new FileReader();
+    reader.onload = function(e) {
+      $("#createGovtIDImgPreview").attr("src", e.target.result).show();
+    };
+    reader.readAsDataURL(this.files[0]);
+  });
+
+  // Preview Govt ID image on upload (Edit)
+  $(document).on("change", "#editGovtIDImg", function() {
+    let reader = new FileReader();
+    reader.onload = function(e) {
+      $("#editGovtIDImgPreview").attr("src", e.target.result).show();
+    };
+    reader.readAsDataURL(this.files[0]);
+  });
+
+  // Reset button for Create Form
+  $(document).on("click", "#createResetBtn", function() {
+    $("#createPayeeForm")[0].reset();
+    $("#createGovtIDImgPreview").hide().attr("src","");
+  });
+</script>

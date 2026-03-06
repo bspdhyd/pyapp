@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'bootstrap.html' %}
+{% include 'navbar.html' %}
+
+<body>
+
+<div class="container mt-4">
+    <h2 class="mb-3">VMT Member Details</h2>
+
+    <!-- SEARCH FORM -->
+    <form method="POST" action="{{ url_for('vmt.view_vmt_details') }}">
+        <div class="input-group mb-3">
+            <input type="text" name="search" class="form-control"
+                   value="{{ session.get('last_search', '') }}"
+                   placeholder="Enter Member IDs / Alias (comma or space separated)">
+
+            <button class="btn btn-primary">Search</button>
+
+            <a href="{{ url_for('vmt.view_vmt_details', reset=1) }}" 
+               class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+
+    <!-- SAVE ALL FORM -->
+    <form method="POST" action="{{ url_for('vmt.update_all_vmt_members') }}">
+
+        <div class="text-end mb-2">
+            <button class="btn btn-success">Save All</button>
+        </div>
+
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Member ID</th>
+                    <th>Alias</th>
+                    <th>Father ID</th>
+                    <th>Mother ID</th>
+                    <th>Spouse ID</th>
+                    <th>Referrer ID</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for m in members %}
+                <tr>
+                    <td>
+                        {{ m.MEMBER_ID }}
+                        <input type="hidden" name="member_id[]" value="{{ m.MEMBER_ID }}">
+                    </td>
+
+                    <td>{{ m.Alias }}</td>
+
+                    <td><input type="text" name="father[]" value="{{ m.Father_ID }}" class="form-control"></td>
+                    <td><input type="text" name="mother[]" value="{{ m.Mother_ID }}" class="form-control"></td>
+                    <td><input type="text" name="spouse[]" value="{{ m.Spouse_ID }}" class="form-control"></td>
+                    <td><input type="text" name="referrer[]" value="{{ m.Referrer_ID }}" class="form-control"></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </form>
+
+</div>
+
+</body>
+</html>

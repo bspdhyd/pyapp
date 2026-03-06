@@ -24,7 +24,7 @@ def register():
                 event_id = request.form.get('event_id')
                 member_ids_raw = request.form.get('member_id', '')
                 registered = request.form.get('registered')
-                eventrole = 'Attendee'
+                eventrole = request.form.get('primary_role')
 
                 # Handle multiple member IDs separated by comma or space
                 member_ids = [mid.strip() for mid in member_ids_raw.replace(',', ' ').split() if mid.strip()]

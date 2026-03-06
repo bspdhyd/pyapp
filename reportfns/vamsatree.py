@@ -5,9 +5,16 @@ import db
 
 vamsatree_bp = Blueprint('vamsatree', __name__,)
 
-@vamsatree_bp.route('/vamsatree', methods=['GET'])
+@vamsatree_bp.route('/vamsatree', methods=['GET', 'POST'])
 def family_tree_page():
-    member_id = session['user']['MEMBER_ID']
+    
+    if request.method == 'POST':
+        member_id = request.form.get('search_id')
+    else:
+        member_id = session['user']['MEMBER_ID']
+    
+    memdata = db.get_member_data(member_id)
+
     root = root_id(member_id)
     
     colors = ["aqua", "yellow", "#ff9999", "#90EE90", "#FFD580", "#ff80ff",
@@ -15,7 +22,7 @@ def family_tree_page():
     
     family_tree_data = build_family_tree(root, 0, colors)
 
-    return render_template("vamsatree.html", tree=family_tree_data, name=session['user']['Alias'])
+    return render_template("vamsatree.html", tree=family_tree_data, name=session['user']['Alias'], memdata=memdata)
 
 
 # Find root ancestor

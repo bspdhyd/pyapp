@@ -2,7 +2,12 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import db
 import cfs
-#import subprocess
+import subprocess
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 #Importing blueprints of each function/screen
 from cflskrtn import cflskrtn_bp
@@ -32,9 +37,14 @@ from reportfns.sibcollection_report import sibcollection_report_bp
 from reportfns.referer_issues import referer_issues_bp
 from research.images import images_bp
 from updatefns.dupidentifier import dupidentifier_bp
+from crudfns.payee import payee_bp
+from crudfns.payee_acc import payee_acc_bp
+from updatefns.conf_payment import conf_payment_bp
+from updatefns.vmt_details import vmt_bp
+from NBV.nbv_subcollector import nbv_subcollector_bp
 
 
-blueprints = [cflskrtn_bp, events_bp, attendence_bp, registration_bp, expenses_bp, mbrsearch_bp, contribution_bp, van_bp, member_reports_bp, event_reports_bp, nwmember_bp, podili_assignment_bp, podili_admission_bp, password_bp, vamsatree_bp, access_bp, qrcode_bp, master_data_bp, multiple_data_bp, update_member_bp, requests_bp, monthly_report_bp, issues_bp, sibcollection_report_bp, referer_issues_bp, images_bp, dupidentifier_bp]
+blueprints = [cflskrtn_bp, events_bp, attendence_bp, registration_bp, expenses_bp, mbrsearch_bp, contribution_bp, van_bp, member_reports_bp, event_reports_bp, nwmember_bp, podili_assignment_bp, podili_admission_bp, password_bp, vamsatree_bp, access_bp, qrcode_bp, master_data_bp, multiple_data_bp, update_member_bp, requests_bp, monthly_report_bp, issues_bp, sibcollection_report_bp, referer_issues_bp, images_bp, dupidentifier_bp, payee_bp, payee_acc_bp, conf_payment_bp, vmt_bp, nbv_subcollector_bp]
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -59,9 +69,11 @@ def login():
             session['entity_id'] = request.form['entity_id']
             usraccess = db.get_access_by_member(member_id)
             session['access'] = usraccess
-            return redirect(url_for('dashboard'))
+            logger.info(f"User {member_id} logged in successfully.")
+            return redirect('/pyapp/dashboard')
         else:
             message = 'Invalid Member ID or Password.'
+            logger.warning(f"Failed login attempt for {member_id}.")
     return render_template('login.html', message=message)
 
 @app.route('/dashboard')
@@ -80,14 +92,19 @@ def dashboard():
     encryptvalue = cfs.encrypt_details(testvalue, key)
     decryptvalue = cfs.decrypt_details(encryptvalue, key)
     
+    fevents = db.get_future_events()
+    
     payee = db.get_payee_details(logid)
     acctnum = 0
+    enacctnum = 0
 #    if payee:
 #        acct_num = payee['Payee_Acnt_Num']
 #        result = subprocess.run(['php', 'phpcfs.php', "decrypt", acct_num, key], capture_output=True, text=True)
 #        acctnum = result.stdout.strip()
+#        eresult = subprocess.run(['php', 'phpcfs.php', "encrypt", acctnum, key], capture_output=True, text=True)
+#        enacctnum = eresult.stdout.strip()
 
-    return render_template('dashboard.html', otp=otp, ip_address=ip_address, user=session['user'], usraccess=session['access'], encryptvalue=encryptvalue, decryptvalue=decryptvalue, acctnum=acctnum)
+    return render_template('dashboard.html', otp=otp, ip_address=ip_address, user=session['user'], usraccess=session['access'], encryptvalue=encryptvalue, decryptvalue=decryptvalue, acctnum=acctnum, enacctnum=enacctnum, fevents=fevents)
 
 @app.route('/logout')
 def logout():

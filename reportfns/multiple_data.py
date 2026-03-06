@@ -20,15 +20,22 @@ def multiple_data():
             flash("Please enter at least one valid Member ID.", "warning")
         else:
             for mid in member_ids:
-                if member_data:= db.get_member_data(mid):
+                member_data = db.get_member_data(mid)
+                if member_data:
                     member_data['Phone_Num'] = cfs.mask_num(member_data['Phone_Num'])
                     member_data['Email_ID'] = cfs.mask_email(member_data['Email_ID'])
                     mem_group[mid] = member_data
 
-                if recog := db.get_recognition_report(mid, None):
+                # Recognition
+                recog = db.get_recognition_report(mid, None)
+                if recog:
                     recognition_grouped[mid] = recog
-                if contrib := db.get_contribution_report(mid, None):
+
+                # Contribution
+                contrib = db.get_contribution_report(mid, None)
+                if contrib:
                     contribution_grouped[mid] = contrib
+                
                 merged_data = {}
                 for mid in set(mem_group.keys()).union(recognition_grouped.keys()).union(contribution_grouped.keys()):
                     merged_data[mid] = {
@@ -37,3 +44,4 @@ def multiple_data():
                     "contribution": contribution_grouped.get(mid, []) }
 
     return render_template('multiple_data.html', merged_data=merged_data)
+    

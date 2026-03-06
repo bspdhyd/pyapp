@@ -12,6 +12,40 @@
         </div>
         <button type="submit" class="btn btn-primary">Fetch Data</button>
     </form>
+    
+    {% if merged_data %}
+<h5 class="mt-4 text-success">Member Details</h5>
+
+<table class="table table-bordered table-striped table-sm">
+    <thead class="table-dark">
+        <tr>
+            <th>MEMBER_ID</th>
+            <th>Surname</th>
+            <th>Name</th>
+            <th>YOB</th>
+            <th>Email ID</th>
+            <th>Phone No</th>
+            <th>Referrer ID</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for mid, data in merged_data.items() %}
+        <tr>
+            <td>{{ data.member['MEMBER_ID'] }}</td>
+            <td>{{ data.member['Surname'] }}</td>
+            <td>{{ data.member['Name'] }}</td>
+            <td>{{ data.member['Year_Of_Birth'] }}</td>
+            <td>{{ data.member['Email_ID'] }}</td>
+            <td>{{ data.member['Phone_Num'] }}</td>
+            <td>{{ data.member['Referrer_ID'] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<hr>
+{% endif %}
+
 
     {% for mid, data in merged_data.items() %}
         <h6 class="mt-4 text-primary">Recognition & Contribution - {{data.member['Alias']}} - {{ data.member['Email_ID'] }} - {{ data.member['Phone_Num'] }} - {{ data.member['Year_Of_Birth'] }}</h6>
@@ -48,3 +82,4 @@
 
 </div>
 </html>
+

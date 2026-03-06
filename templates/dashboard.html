@@ -1,27 +1,88 @@
 <!DOCTYPE html>
 <html>
-    
-{% include 'bootstrap.html' %}
 
+{% include 'bootstrap.html' %}
 {% include 'navbar.html' %}
 
+<script>
+    // Break out of iframe if loaded inside one (e.g., from the home page)
+    if (window.top !== window.self) {
+        window.top.location.href = window.self.location.href;
+    }
+</script>
 
-
-<div class="container mt-4">
-    <h3>Your Member Information</h3>
-    <table class="table table-bordered">
-        <tr><th>Member ID</th><td>{{ user.MEMBER_ID }}</td></tr>
-        <tr><th>Email</th><td>{{ user.Email_ID }}</td></tr>
-        <tr><th>Phone</th><td>{{ user.Phone_Num }}</td></tr>
-        <tr><th>referrerid</th><td>{{ user.Referrer_ID }}</td></tr>
-        <tr><th>ipaddress</th><td>{{ ip_address }}</td></tr>
-        <tr><th>testfield</th><td>{{ otp }}</td></tr>   
-        <tr><th>Encrypted Value</th><td>{{ encryptvalue }}</td></tr>   
-        <tr><th>Decrypted Value</th><td>{{ decryptvalue }}</td></tr>  
-        <tr><th>Bank Acct Num</th><td>{{ acctnum }}</td></tr>   
-
-    </table>
+<div class="container md-12">
+    <div class="row">
+        <!-- Left side: List of past events -->
+        <div class="col-md-8">
+            <h3>Your Member Information</h3>
+            <table class="table table-bordered">
+                <tr>
+                    <th>Member ID</th>
+                    <td>{{ user.MEMBER_ID }}</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>{{ user.Email_ID }}</td>
+                </tr>
+                <tr>
+                    <th>Phone</th>
+                    <td>{{ user.Phone_Num }}</td>
+                </tr>
+                <tr>
+                    <th>referrerid</th>
+                    <td>{{ user.Referrer_ID }}</td>
+                </tr>
+                <tr>
+                    <th>ipaddress</th>
+                    <td>{{ ip_address }}</td>
+                </tr>
+                <tr>
+                    <th>testfield</th>
+                    <td>{{ otp }}</td>
+                </tr>
+                <tr>
+                    <th>Encrypted Value</th>
+                    <td>{{ encryptvalue }}</td>
+                </tr>
+                <tr>
+                    <th>Decrypted Value</th>
+                    <td>{{ decryptvalue }}</td>
+                </tr>
+                <tr>
+                    <th>Bank Acct Num</th>
+                    <td>{{ acctnum }}</td>
+                </tr>
+                <tr>
+                    <th>BnkActNum encryp</th>
+                    <td>{{ enacctnum }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-4">
+            <h3>Upcoming Events</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Event ID</th>
+                        <th>Event Date</th>
+                        <th>Event Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in fevents %}
+                    <tr>
+                        <td>{{ event.EVENT_ID }}</td>
+                        <td>{{ event.Event_date.strftime('%Y %b %d') }}</td>
+                        <td>{{ event.Event_Description }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 </body>
+
 </html>

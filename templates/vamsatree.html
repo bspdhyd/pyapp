@@ -8,7 +8,26 @@
     </style>
     {% include 'navbar.html' %}
     
-    <h4>Family Tree of {{ name }}</h4>
+    <form method="POST" action="{{ url_for('vamsatree.family_tree_page') }}" class="p-3 border rounded" enctype="multipart/form-data">
+        <div class="row mb-12">
+            <!-- Editable Mem ID to Search -->
+            <div class="col-md-2">
+                <label for="mem_id" class="form-label">Family tree of:</label>
+                {% if session['access']['Admin'] == 'Y' %}
+                <input type="text" class="form-control" id="mem_id" name="search_id" placeholder="Enter Mem ID" value="{{ search_id }}">
+                {%else%}
+                <input type="text" class="form-control" id="mem_id" name="search_id" placeholder="Enter Mem ID" value="{{ search_id }}" readonly>
+                {%endif%}
+            </div>
+            <!-- Search Button -->
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" name="action" value="search" class="btn btn-primary">Search</button>
+            </div>
+            <div class = "col-md-8">
+                <label for="aliasname" class="form-label"><h5>{{ memdata.Alias }}</h5></label>    
+            </div>
+        </div>
+    </form>
 
     <div class="tree">
         {% macro render_tree(member) %}

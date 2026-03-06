@@ -7,7 +7,10 @@ events_bp = Blueprint('events', __name__)
 @events_bp.route('/events', methods=['GET', 'POST'])
 def events():
     if 'user' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('logout'))
+
+    if session['access']['Admin'] != 'Y':
+        return redirect(url_for('logout'))
 
     events = db.get_events()
 
