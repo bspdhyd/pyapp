@@ -1,48 +1,122 @@
 #All database calls
+import os
+import atexit
+import hashlib
+from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
+
+load_dotenv()
+
 from flask import Flask, session
 import mysql.connector
 from mysql.connector import Error
+from mysql.connector import pooling
 from datetime import datetime
 
+class DatabaseManager:
+    _instance = None
+
+    def __init__(self):
+        if DatabaseManager._instance is not None:
+            raise Exception("This class is a singleton!")
+        else:
+            DatabaseManager._instance = self
+            
+            # Read db config map from environment variables
+            self.db_host = os.getenv('DB_HOST', '127.0.0.1')
+            self.db_port = int(os.getenv('DB_PORT', 3306))
+            self.db_user = os.getenv('DB_USER')
+            self.db_password = os.getenv('DB_PASSWORD')
+            self.db_name = os.getenv('DB_NAME')
+            
+            self.pool = None
+
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls()
+        return cls._instance
+
+    def _initialize_pool(self):
+        if self.pool is None:
+            try:
+                self.pool = pooling.MySQLConnectionPool(
+                    pool_name="bspd_pool",
+                    pool_size=10,
+                    pool_reset_session=True,
+                    host=self.db_host,
+                    port=self.db_port,
+                    user=self.db_user,
+                    password=self.db_password,
+                    database=self.db_name
+                )
+            except Error as e:
+                print(f"Error creating connection pool: {e}")
+                raise
+
+    def get_connection(self):
+        self._initialize_pool()
+        return self.pool.get_connection()
+
+    def close(self):
+        # Pool doesn't need explicit closing like the tunnel did, 
+        # but we keep the method for consistency.
+        pass
+
+# Ensure the manager is cleaned up if needed (though pool handles itself mostly)
+atexit.register(lambda: DatabaseManager.get_instance().close())
+
 def create_connection():
-    return mysql.connector.connect(
-        host='184.168.115.30',
-#        user='devbspd',
-#        password='Dev4bspd@2025',
-#        database='DevDB'
-        user='madhup',
-        password='madhup',
-        database='bspdhyd_wp1',
-    )
+    return DatabaseManager.get_instance().get_connection()
 
 def run_fetchall_query(query, params):
     conn = create_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(query, params)
-    results = cursor.fetchall()
-    conn.close()
-    return results
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(query, params)
+        results = cursor.fetchall()
+        return results
+    finally:
+        conn.close()
 
 def run_fetchone_query(query, params):
     conn = create_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(query, params)
-    result = cursor.fetchone()
-    conn.close()
-    return result
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(query, params)
+        result = cursor.fetchone()
+        return result
+    finally:
+        conn.close()
 
 def run_crud_query(query, params):
     conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute(query, params)
-    conn.commit()
-    conn.close()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        conn.commit()
+    finally:
+        conn.close()
     
 def get_user_by_credentials(member_id, password):
-    query = """SELECT MEMBER_ID, MEMBER_TYPE, Alias, Email_ID, Referrer_ID, Phone_Num, MEMBER_TYPE FROM BSPD_Member 
-                      WHERE MEMBER_ID = %s AND Status = 'Active' AND Password = MD5(%s) """
-    params = [member_id, password]   
-    return run_fetchone_query(query, params)
+    query = """SELECT MEMBER_ID, MEMBER_TYPE, Alias, Email_ID, Referrer_ID, Phone_Num, Password FROM BSPD_Member 
+                      WHERE MEMBER_ID = %s AND Status = 'Active' """
+    params = [member_id]   
+    user = run_fetchone_query(query, params)
+    
+    if user:
+        stored_password = user['Password']
+        # Check if it's a werkzeug hash (contains colons or is significantly longer than MD5)
+        if stored_password and (':' in stored_password or '$' in stored_password):
+            if check_password_hash(stored_password, password):
+                return user
+        else:
+            # Legacy MD5 check (usually 32 chars)
+            if stored_password == hashlib.md5(password.encode()).hexdigest():
+                # On successful legacy login, upgrade the password hash immediately
+                update_user_password(member_id, password)
+                return user
+    return None
 
 def get_member_data(member_id):
     query = """SELECT MEMBER_ID, MEMBER_TYPE, Name, Surname, Alias, Email_ID, Year_Of_Birth, Referrer_ID, Father_ID, Mother_ID, Spouse_ID, Phone_Num,
@@ -286,10 +360,12 @@ def get_gotras():
 
 def create_member(surname, name, gender, year_of_birth, gotram_id, email, phone_num, referrer, bloodgroup, notes, addloc, addline1, addline2, addcity, addstate, addpin, addcntry):
     memid = session['user']['MEMBER_ID']
+    # Hash the initial password (defaulting to phone number)
+    hashed_password = generate_password_hash(phone_num)
     query = """ INSERT INTO BSPD_Member 
         ( Surname, Name, Gender, Year_Of_Birth, Gotram_ID, Email_ID, Phone_Num, Referrer_ID, Location, Address1, Address2, City, State, PIN_or_ZIP, Country, BloodGroup, Password, Created_By, Updated_By, Notes) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, MD5(%s), %s, %s, %s) """
-    params = [surname, name, gender, year_of_birth, gotram_id, email, phone_num, referrer, addloc, addline1, addline2, addcity, addstate, addpin, addcntry, bloodgroup, phone_num, memid, memid, notes]
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) """
+    params = [surname, name, gender, year_of_birth, gotram_id, email, phone_num, referrer, addloc, addline1, addline2, addcity, addstate, addpin, addcntry, bloodgroup, hashed_password, memid, memid, notes]
     run_crud_query(query, params)
 
 def check_dup_member(surname, gender, yob, gotramid, email, phonenum):
@@ -385,8 +461,9 @@ def search_college_admissions(alias=None, year_of_birth=None, status=None):
     return results
     
 def update_user_password(member_id, new_password):
-    query = "UPDATE BSPD_Member SET Password = MD5(%s) WHERE MEMBER_ID = %s"
-    params = [new_password, member_id]
+    hashed_password = generate_password_hash(new_password)
+    query = "UPDATE BSPD_Member SET Password = %s WHERE MEMBER_ID = %s"
+    params = [hashed_password, member_id]
     run_crud_query(query, params)
 
 def get_all_children(member_id):
@@ -455,6 +532,15 @@ def get_transaction_code_master():
                 FROM BSPD_Transaction_Code_Master Order by Categroy_Type ASC, Category_ID ASC """
     params = []
     return run_fetchall_query(query, params)
+
+def update_transaction_code_description(category_type, category_id, sub_category_id, category_desc, sub_category_desc):
+    query = """
+        UPDATE BSPD_Transaction_Code_Master 
+        SET Category_Desc = %s, Sub_Category_Desc = %s, UpdatedDt = NOW()
+        WHERE Categroy_Type = %s AND Category_ID = %s AND Sub_Category_ID = %s
+    """
+    params = [category_desc, sub_category_desc, category_type, category_id, sub_category_id]
+    return run_query(query, params)
     
 def update_member_by_id(member_id, first_name, last_name, gender, dupindicator, phone_num, gotram_id, Father_id, Mother_id, Spouse_id, YOB, nakshatra_id, Pada, Email_ID, notes, address1, address2, location, city, state, zipcode, country, status):
     upd_memid = session['user']['MEMBER_ID']

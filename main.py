@@ -1,4 +1,9 @@
 # main.py
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import db
 import cfs
@@ -42,12 +47,15 @@ from crudfns.payee_acc import payee_acc_bp
 from updatefns.conf_payment import conf_payment_bp
 from updatefns.vmt_details import vmt_bp
 from NBV.nbv_subcollector import nbv_subcollector_bp
+from publicfns.bv_stats import bv_stats_bp
 
-
-blueprints = [cflskrtn_bp, events_bp, attendence_bp, registration_bp, expenses_bp, mbrsearch_bp, contribution_bp, van_bp, member_reports_bp, event_reports_bp, nwmember_bp, podili_assignment_bp, podili_admission_bp, password_bp, vamsatree_bp, access_bp, qrcode_bp, master_data_bp, multiple_data_bp, update_member_bp, requests_bp, monthly_report_bp, issues_bp, sibcollection_report_bp, referer_issues_bp, images_bp, dupidentifier_bp, payee_bp, payee_acc_bp, conf_payment_bp, vmt_bp, nbv_subcollector_bp]
+    
+blueprints = [cflskrtn_bp, events_bp, attendence_bp, registration_bp, expenses_bp, mbrsearch_bp, contribution_bp, van_bp, member_reports_bp, event_reports_bp, nwmember_bp, podili_assignment_bp, podili_admission_bp, password_bp, vamsatree_bp, access_bp, qrcode_bp, master_data_bp, multiple_data_bp, update_member_bp, requests_bp, monthly_report_bp, issues_bp, sibcollection_report_bp, referer_issues_bp, images_bp, dupidentifier_bp, payee_bp, payee_acc_bp, conf_payment_bp, vmt_bp, nbv_subcollector_bp, bv_stats_bp]
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
+if not app.secret_key:
+    raise RuntimeError("FLASK_SECRET_KEY must be set in the environment.")
 
 for blueprint in blueprints:
     app.register_blueprint(blueprint)
@@ -70,7 +78,7 @@ def login():
             usraccess = db.get_access_by_member(member_id)
             session['access'] = usraccess
             logger.info(f"User {member_id} logged in successfully.")
-            return redirect('/pyapp/dashboard')
+            return redirect(url_for('dashboard'))
         else:
             message = 'Invalid Member ID or Password.'
             logger.warning(f"Failed login attempt for {member_id}.")
@@ -111,5 +119,7 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+#for rule in app.url_map.iter_rules():
+   # print(rule)
 if __name__ == '__main__':
     app.run(debug=True)
